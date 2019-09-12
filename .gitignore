@@ -1,0 +1,4 @@
+.vscode/
+Model/heartbeat-data/
+Model/__pycache__/
+.DS_Store

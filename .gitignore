@@ -1,4 +1,8 @@
 .vscode/
-Model/heartbeat-data/
-Model/__pycache__/
+MachineLearning/heartbeat-data/
+MachineLearning/__pycache__/
+MachineLearning/models/
 .DS_Store
+dataset-proc/data
+.venv
+

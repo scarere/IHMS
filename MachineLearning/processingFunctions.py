@@ -42,7 +42,7 @@ def gen_new_data(x, factor, samples):
         factor: factor by which to generate new data. Eg. factor=2 will generate twice the amount of data entries in x
         samples: number of samples for each data entry in x
     '''
-    result = np.zeros(shape= (factor, 187))
+    result = np.zeros(shape= (factor, samples))
     for i in range(factor-1):
         if random.random() < 0.33:
             new_y = stretch(x, samples)

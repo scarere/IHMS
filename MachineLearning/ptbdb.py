@@ -10,15 +10,15 @@ from keras import models
 from keras import layers
 from keras import callbacks
 
-#from biosppy.signals import ecg     #Seems to require multiple heartbeats
-
 #Read csv files. 1 is abnormal, 0 is normal
-df = pd.read_csv('heartbeat-data/ptbdb_abnormal.csv', header=None)
-df2 = pd.read_csv('heartbeat-data/ptbdb_normal.csv', header=None)
+# df = pd.read_csv('heartbeat-data/ptbdb_abnormal.csv', header=None)
+# df2 = pd.read_csv('heartbeat-data/ptbdb_normal.csv', header=None)
+df = pd.read_csv('heartbeat-data/ptb-400hz_abnormal-v1.csv', header=None)
+df2 = pd.read_csv('heartbeat-data/ptb-400hz_normal-v1.csv', header=None)
 df = pd.concat([df, df2], axis=0)
 print(df.shape)
 print(df.head())
-print(df[187].value_counts())
+print(df[800].value_counts())
 
 M = df.values
 X = M[:, :-1]
@@ -29,7 +29,7 @@ C0 = np.argwhere(Y==0).flatten()
 C1 = np.argwhere(Y==1).flatten()
 
 #Generate more data for normal heartbeats (class 0)
-var = np.apply_along_axis(pf.gen_new_data, axis=1, arr=X[C0], factor=1, samples=187).reshape(-1, 187)
+var = np.apply_along_axis(pf.gen_new_data, axis=1, arr=X[C0], factor=1, samples=len(X[0])).reshape(-1, len(X[0]))
 tag = np.zeros(shape=(var.shape[0],), dtype=int)
 X = np.vstack([X, var])
 Y = np.hstack([Y, tag])
@@ -135,7 +135,7 @@ model.summary()
 
 model.compile(loss='categorical_crossentropy', optimizer='Adam', metrics=['accuracy'])
 history = model.fit(X_train, Y_train, 
-                    epochs=75, 
+                    epochs=45, 
                     batch_size=500, 
                     verbose=2, 
                     validation_data=(X_val, Y_val))
@@ -151,3 +151,6 @@ plt.show()
 
 y_pred = model.predict(X_test, batch_size=1000)
 print(classification_report(Y_test.argmax(axis=1), y_pred.argmax(axis=1), target_names=["Normal", "Arrythmias"], digits=5))
+
+model.save('models/model-400hz-win2s-v1.h5')
+print("Model Saved to models folder")

@@ -1,8 +1,13 @@
-.vscode/
 MachineLearning/heartbeat-data/
 MachineLearning/__pycache__/
 MachineLearning/models/
-.DS_Store
 dataset-proc/data
+godirect_osx
+gdx-dev.py
+
+.vscode/
+.DS_Store
 .venv
+__pycache__
+.idea/
 

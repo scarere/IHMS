@@ -4,6 +4,14 @@ import matplotlib.pyplot as plt
 import wfdb # Official Physionet API for loading databases into python
 import biosppy as bp
 from scipy import signal as sigproc
+import time
+from sk_dsp_comm import fir_design_helper as fir_d
+
+# Get time reference
+ts = time.time()
+
+
+print(' 0.00s - Loading Data From CSV ...')
 
 # Import list of recordings from ptb database
 records = wfdb.get_record_list('ptbdb')
@@ -32,28 +40,22 @@ for record in abnormalRecords:
 ctrlSignals = np.asarray(ctrlSignals)
 abnSignals = np.asarray(abnSignals)
 
-# ctrl = ctrlSignals[0][0:10000]
-# abn = abnSignals[0][0:4000]
-# abnnorm = (abn-min(abn))/(max(abn)-min(abn))
-# ctrlnorm = (ctrl-min(ctrl))/(max(ctrl)-min(ctrl))
-# rpeaks, = bp.ecg.hamilton_segmenter(signal=abn, sampling_rate=1000)
-# rpeaks, = bp.ecg.correct_rpeaks(signal=abn, rpeaks=rpeaks, sampling_rate=1000)
-# plt.plot(abnnorm, label='Filtered')
-# plt.vlines(rpeaks, -0.1, 1.1, color='m', label='R-peaks')
-# plt.show()
-
 # Define Variables for heartbeat extraction
 fs = 1000 # Original Sampling Rate
 winLength = 10000 # Total window length (in samples) before resampling
 beatLength = 800 # Fixed length of single beat (in samples) after resampling
 ds = 400 # Downsample signal to this sampling frequency
+b = fir_d.firwin_kaiser_lpf(8, 50, d_stop=80, fs=1000) # Get filter coefficients for LPF
 
 # Extract Control Heartbeats
+tc = time.time() - ts
+print('%.2fs - Extracting Heartbeats from Control Data ...' % tc)
 ctrlBeats = []
-for i in range(6, 9):
+for i in range(0, 6): # Note that the shortest control recording is 97 seconds long
     for signal in ctrlSignals:
         # Grab 10s window of data
         win = signal[i*winLength:i*winLength + winLength] # Fs is 1000Hz, therefore a 10s window is 10000 samples
+        win = sigproc.filtfilt(b=b, a=1, x=win) # Filter data
         win = sigproc.resample(win, int(winLength*ds/fs)) # Resample 10 seconds of data to 400Hz
         # Find R peaks
         rpeaks, = bp.ecg.hamilton_segmenter(signal=win, sampling_rate=ds)
@@ -74,11 +76,14 @@ for i in range(6, 9):
                 ctrlBeats.append(beat)
 
 # Extract abnormal patient heartbeats
+tc = time.time() - ts
+print('%.2fs - Extracting Heartbeats from Abnormal Data ...' % tc)
 abnBeats = []
-for i in range(2, 3):
+for i in range(0, 2): # Note that the shortest abnormal patient recording is 32 seconds long
     for signal in abnSignals:
         # Grab 10s window of data
         win = signal[i*winLength:i*winLength + winLength] # Fs is 1000Hz, therefore a 10s window is 10000 samples
+        win = sigproc.filtfilt(b=b, a=1, x=win) # Filter data
         win = sigproc.resample(win, int(winLength*ds/fs)) # Resample 10 seconds of data to 400Hz
         # Find R peaks
         rpeaks, = bp.ecg.hamilton_segmenter(signal=win, sampling_rate=ds)
@@ -98,20 +103,22 @@ for i in range(2, 3):
                 beat = np.pad(beat, (0,beatLength - len(beat)), 'constant') # Pad beat with zeros if it is short
                 abnBeats.append(beat)
 
+tc = time.time() - ts
+print('%.2fs - Formatting and Exporting Data to CSV ...' % tc )
 # Append labels to dataset (0 for normal, 1 for abnormal)
 ctrlY = np.zeros(shape=(len(ctrlBeats), 1))
 abnY = np.ones(shape=(len(abnBeats), 1))
 ctrlBeats = np.append(ctrlBeats, values=ctrlY, axis=1)
 abnBeats = np.append(abnBeats, values=abnY, axis=1)
 
-# Print info about data to be exported
-print(len(ctrlBeats), " samples for control patient data\n")
-print(len(abnBeats), " samples for abnormal patient data\n")
-
 # Export data as csv
 ctrlBeats = np.asarray(ctrlBeats)
 abnBeats = np.asarray(abnBeats)
-np.savetxt('data/ptb-400hz_normal-v2.csv', ctrlBeats, fmt='%f', delimiter=',')
-np.savetxt('data/ptb-400hz_abnormal-v2.csv', abnBeats, fmt='%f', delimiter=',')
+#np.savetxt('data/ptb-400hz_normal-v4.csv', ctrlBeats, fmt='%f', delimiter=',')
+#np.savetxt('data/ptb-400hz_abnormal-v4.csv', abnBeats, fmt='%f', delimiter=',')
 
-
+tc = time.time() - ts
+print('%.2fs - End\n' % tc )
+# Print info about data
+print(len(ctrlBeats), "samples for control patient data")
+print(len(abnBeats), "samples for abnormal patient data\n")

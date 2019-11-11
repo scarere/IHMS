@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import scipy.signal as sigproc
 import wfdb
 
-b_l = fir_d.firwin_kaiser_lpf(8, 50, d_stop=80, fs=1000)
+b_l = fir_d.firwin_kaiser_lpf(22.5, 50, d_stop=80, fs=1000)
 #b_h = fir_d.firwin_kaiser_hpf(0.3, 0.5, d_stop=40, fs=1000)
 fir_d.freqz_resp_list([b_l],[1],'dB',fs=1000)
 

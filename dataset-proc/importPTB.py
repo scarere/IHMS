@@ -42,6 +42,7 @@ abnSignals = np.asarray(abnSignals)
 
 # Define Variables for heartbeat extraction
 fs = 1000 # Original Sampling Rate
+print(type(fs))
 winLength = 10000 # Total window length (in samples) before resampling
 beatLength = 800 # Fixed length of single beat (in samples) after resampling
 ds = 400 # Downsample signal to this sampling frequency

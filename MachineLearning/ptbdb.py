@@ -14,12 +14,12 @@ from keras import callbacks
 #Read csv files. 1 is abnormal, 0 is normal
 # df = pd.read_csv('heartbeat-data/ptbdb_abnormal.csv', header=None)
 # df2 = pd.read_csv('heartbeat-data/ptbdb_normal.csv', header=None)
-df = pd.read_csv('heartbeat-data/ptb-400hz_abnormal-v3.csv', header=None)
-df2 = pd.read_csv('heartbeat-data/ptb-400hz_normal-v3.csv', header=None)
+df = pd.read_csv('heartbeat-data/ptb-200hz_abnormal-v5.csv', header=None)
+df2 = pd.read_csv('heartbeat-data/ptb-200hz_normal-v5.csv', header=None)
 df = pd.concat([df, df2], axis=0)
 print(df.shape)
 print(df.head())
-print(df[800].value_counts())
+print(df.iloc[:,-1].value_counts())
 
 M = df.values
 X = M[:, :-1]
@@ -139,7 +139,7 @@ model.summary()
 
 model.compile(loss='categorical_crossentropy', optimizer='Adam', metrics=['accuracy'])
 history = model.fit(X_train, Y_train, 
-                    epochs=50, 
+                    epochs=55, 
                     batch_size=500, 
                     verbose=2, 
                     validation_data=(X_val, Y_val))
@@ -156,5 +156,5 @@ plt.show()
 y_pred = model.predict(X_test, batch_size=1000)
 print(classification_report(Y_test.argmax(axis=1), y_pred.argmax(axis=1), target_names=["Normal", "Arrythmias"], digits=5))
 
-model.save('models/model-v3-.h5')
+model.save('models/model-v5-A.h5')
 print("Model Saved to models folder")

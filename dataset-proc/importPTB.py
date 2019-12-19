@@ -42,21 +42,20 @@ abnSignals = np.asarray(abnSignals)
 
 # Define Variables for heartbeat extraction
 fs = 1000 # Original Sampling Rate
-print(type(fs))
 winLength = 10000 # Total window length (in samples) before resampling
-beatLength = 800 # Fixed length of single beat (in samples) after resampling
-ds = 400 # Downsample signal to this sampling frequency
-b = fir_d.firwin_kaiser_lpf(8, 50, d_stop=80, fs=1000) # Get filter coefficients for LPF
+ds = 200 # Downsample signal to this sampling frequency
+beatLength = 2*ds # Fixed length of single beat (in samples) after resampling (2*ds is two seconds)
+#b = fir_d.firwin_kaiser_lpf(8, 50, d_stop=80, fs=1000) # Get filter coefficients for LPF
 
 # Extract Control Heartbeats
 tc = time.time() - ts
 print('%.2fs - Extracting Heartbeats from Control Data ...' % tc)
 ctrlBeats = []
-for i in range(0, 6): # Note that the shortest control recording is 97 seconds long
+for i in range(6, 9): # Note that the shortest control recording is 97 seconds long
     for signal in ctrlSignals:
         # Grab 10s window of data
         win = signal[i*winLength:i*winLength + winLength] # Fs is 1000Hz, therefore a 10s window is 10000 samples
-        win = sigproc.filtfilt(b=b, a=1, x=win) # Filter data
+        #win = sigproc.filtfilt(b=b, a=1, x=win) # Filter data
         win = sigproc.resample(win, int(winLength*ds/fs)) # Resample 10 seconds of data to 400Hz
         # Find R peaks
         rpeaks, = bp.ecg.hamilton_segmenter(signal=win, sampling_rate=ds)
@@ -80,11 +79,11 @@ for i in range(0, 6): # Note that the shortest control recording is 97 seconds l
 tc = time.time() - ts
 print('%.2fs - Extracting Heartbeats from Abnormal Data ...' % tc)
 abnBeats = []
-for i in range(0, 2): # Note that the shortest abnormal patient recording is 32 seconds long
+for i in range(2, 3): # Note that the shortest abnormal patient recording is 32 seconds long
     for signal in abnSignals:
         # Grab 10s window of data
         win = signal[i*winLength:i*winLength + winLength] # Fs is 1000Hz, therefore a 10s window is 10000 samples
-        win = sigproc.filtfilt(b=b, a=1, x=win) # Filter data
+        #win = sigproc.filtfilt(b=b, a=1, x=win) # Filter data
         win = sigproc.resample(win, int(winLength*ds/fs)) # Resample 10 seconds of data to 400Hz
         # Find R peaks
         rpeaks, = bp.ecg.hamilton_segmenter(signal=win, sampling_rate=ds)
@@ -115,11 +114,14 @@ abnBeats = np.append(abnBeats, values=abnY, axis=1)
 # Export data as csv
 ctrlBeats = np.asarray(ctrlBeats)
 abnBeats = np.asarray(abnBeats)
-#np.savetxt('data/ptb-400hz_normal-v4.csv', ctrlBeats, fmt='%f', delimiter=',')
-#np.savetxt('data/ptb-400hz_abnormal-v4.csv', abnBeats, fmt='%f', delimiter=',')
+np.savetxt('data/ptb-200hz_normal-v6.csv', ctrlBeats, fmt='%f', delimiter=',')
+np.savetxt('data/ptb-200hz_abnormal-v6.csv', abnBeats, fmt='%f', delimiter=',')
 
 tc = time.time() - ts
 print('%.2fs - End\n' % tc )
 # Print info about data
 print(len(ctrlBeats), "samples for control patient data")
 print(len(abnBeats), "samples for abnormal patient data\n")
+
+plt.plot(ctrlBeats[1000])
+plt.show()

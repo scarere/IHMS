@@ -12,11 +12,11 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
 import tensorflow as tf
 
 #Read csv files. 1 is abnormal, 0 is normal
-df = pd.read_csv('heartbeat-data/ptb-400hz_abnormal-v4.csv', header=None)
-df2 = pd.read_csv('heartbeat-data/ptb-400hz_normal-v4.csv', header=None)
+df = pd.read_csv('heartbeat-data/ptb-200hz_abnormal-v6.csv', header=None)
+df2 = pd.read_csv('heartbeat-data/ptb-200hz_normal-v6.csv', header=None)
 df = pd.concat([df, df2], axis=0)
 print(df.shape)
-print(df[800].value_counts())
+print(df.iloc[:,-1].value_counts())
 
 # Seperate data and labels
 M = df.values
@@ -35,7 +35,7 @@ X = np.expand_dims(X, 2)
 # Load saved model from disk
 print('\n 0s - Loading Model ... \n')
 ts = time.time()
-model = load_model('models/model-v1-A.h5')
+model = load_model('models/model-v5-A.h5')
 tc = time.time() - ts
 print('\n', tc, 's - Evaluating ', len(X), ' Samples ...\n')
 pred = model.predict(X, batch_size=len(X))

@@ -194,7 +194,7 @@ class gdx:
         self.selected_device.enable_sensors(sensors=self.selected_sensors)
         self.selected_device.start(period=period)
 
-    def start_fast(self, period=None):
+    def start_fast(self, period=None): # Currently Non-Functional
         """ Enables the sensors that were selected in the select_sensors() function 
         and then starts data collection. Note this is a modified version of start used to allow
         shorter periods that are not integers eg. 2.5ms

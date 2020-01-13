@@ -2,7 +2,7 @@ import numpy as np
 import statistics as stat
 import biosppy as bp
 
-def extract_hb(win, fs, beatWin=2):
+def extract_heartbeats(win, fs, beatWin=2):
     """ Extracts heartbeats from an ECG recording.
 
     Given an ECG recording, extracts individual heartbeats and returns them seperately in a list. 
@@ -10,15 +10,13 @@ def extract_hb(win, fs, beatWin=2):
 
     Args:
         win (array): A list of voltage values that represent the ECG recording
-        fs (int, float): The sampling frequency used to obtain the ECG recording
-        beatWin (int, float): The number of seconds that each beat recording should be. If beats are 
+        fs (int, float): The sampling frequency of the ECG recording
+        beatWin (int, float): The length of the window in seconds that the beat should be seperated into. If beats are 
             too short they will be padded, if they are too long they will be truncated
 
     Returns:
-        beats: A list of arrays that represent the individual beats within the recording.
+        beatList: A list of arrays that represent the individual beats within the recording.
     """
-    # Calculate beat length in samples
-    beatLength = beatWin*fs
 
     # Extract R-peaks
     rpeaks, = bp.ecg.hamilton_segmenter(signal=win, sampling_rate=fs)
@@ -35,8 +33,11 @@ def extract_hb(win, fs, beatWin=2):
     period = stat.median(diffs) # Calculate median period
     del diffs
 
+    # Calculate beat length in samples
+    beatLength = beatWin*fs
+
     # Extract individual heartbeats
-    beats = []
+    beatList = []
     for r in rpeaks:
         if r > beatLength/2 and len(win)-r > beatLength/2:
             beat = norm[r-int(period/2):r+int(period/2)] # Exctract data surrounding r-peak
@@ -45,6 +46,6 @@ def extract_hb(win, fs, beatWin=2):
                 beat = beat[0:beatLength]
             else:
                 beat = np.pad(beat, (0,beatLength - len(beat)), 'constant') # Pad beat with zeros if it is short
-            beats.append(beat)
+            beatList.append(beat)
     
-    return beats
+    return beatList

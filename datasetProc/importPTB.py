@@ -68,6 +68,7 @@ for i in range(6, 9): # Note that the shortest control recording is 97 seconds l
             if index > 0:
                 diffs.append(r-rpeaks[index-1])
         period = stat.median(diffs)
+
         # Extract individual heartbeats
         for r in rpeaks:
             if r > beatLength/2 and len(win)-r > beatLength/2:
@@ -112,10 +113,10 @@ ctrlBeats = np.append(ctrlBeats, values=ctrlY, axis=1)
 abnBeats = np.append(abnBeats, values=abnY, axis=1)
 
 # Export data as csv
-ctrlBeats = np.asarray(ctrlBeats)
-abnBeats = np.asarray(abnBeats)
-np.savetxt('data/ptb-200hz_normal-v6.csv', ctrlBeats, fmt='%f', delimiter=',')
-np.savetxt('data/ptb-200hz_abnormal-v6.csv', abnBeats, fmt='%f', delimiter=',')
+# ctrlBeats = np.asarray(ctrlBeats)
+# abnBeats = np.asarray(abnBeats)
+# np.savetxt('data/ptb-200hz_normal-v6.csv', ctrlBeats, fmt='%f', delimiter=',')
+# np.savetxt('data/ptb-200hz_abnormal-v6.csv', abnBeats, fmt='%f', delimiter=',')
 
 tc = time.time() - ts
 print('%.2fs - End\n' % tc )

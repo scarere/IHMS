@@ -1,7 +1,8 @@
 MachineLearning/heartbeat-data/
-MachineLearning/__pycache__/
+MachineLearning/__pycache__
+GoDirectSensor/__pycache__
 MachineLearning/models/
-dataset-proc/data
+datasetProc/data
 godirect_osx
 gdx-dev.py
 

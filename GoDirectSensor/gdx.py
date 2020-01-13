@@ -172,8 +172,7 @@ class gdx:
         
         else:
             for sensor in sensors:  #if the user did input a list of sensors as a paramter, then store that list
-                self.selected_sensors.append(sensor)  
-    
+                self.selected_sensors.append(sensor)
     
     
     def start(self, period=None):
@@ -230,8 +229,28 @@ class gdx:
         if self.selected_device.read():
             sensors = self.selected_device.get_enabled_sensors()
             if sensors != None:
-                for sensointr in sensors: 
+                for sensor in sensors: 
                     value.append(sensor.value)
+                return value 
+        else:
+            return None
+
+    def read_all(self): 
+        """ Once the start() function has been called, the device will begin sending data 
+        at the specified period. You must call read at least as fast as the period, e.g. once 
+        per second for a period of 1000 (ms). The collected data will be added to a value list 
+        for each enabled sensor.
+        Returns:
+            value[]: a list that includes a data point from each of the enabled sensors
+        """        
+        value = []
+        if self.selected_device == None:
+            return None
+        if self.selected_device.read():
+            sensors = self.selected_device.get_enabled_sensors()
+            if sensors != None:
+                for sensor in sensors: 
+                    value.append(sensor.values)
                 return value 
         else:
             return None

@@ -8,6 +8,11 @@ The Intelligent Heart Monitoring System is a project that, using an ECG electrod
 
 ## Repository breakdown
 
+### IHMS
+
+The IHMS folder is the final implementation of the IHMS system. This sections contains the code and scripts to run the IHMS system in full.
+  - Predict Arryhthmia's in Real-Time using complete system
+
 ### Dataset-Proc
 
 Dataset-proc is the dataset processing component of the IHMS project. It uses signal processing techniques on raw ECG recordings to create datasets suitable for machine learning. The current raw data being used is from the PTB Diagnostic ECG Database and the MIT-BIH Arrhythmia Database. Purposes include but are not limited to:
@@ -24,6 +29,13 @@ MachineLearning is the classifier creation and testing component of the IHMS pro
   - Model Validation
   - Model Testing
   - Model Performance Visualization
+
+### GoDirectSensor
+
+GoDirectSensor is the sensor testing and implementation component of the IHMS project. In this section, the Vernier GoDirect ECG sensor is used to develop scripts for recording data in real-time and testing code using multiprocessing.
+  - Sensor I/O
+  - Multiprocessing and Threading
+  - Real-time data acquisitiion and processing
 
 ## Contributors
 

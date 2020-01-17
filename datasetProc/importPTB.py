@@ -43,7 +43,7 @@ abnSignals = np.asarray(abnSignals)
 # Define Variables for heartbeat extraction
 fs = 1000 # Original Sampling Rate
 winLength = 10000 # Total window length (in samples) before resampling
-ds = 200 # Downsample signal to this sampling frequency
+ds = 60 # Downsample signal to this sampling frequency
 beatLength = 2*ds # Fixed length of single beat (in samples) after resampling (2*ds is two seconds)
 #b = fir_d.firwin_kaiser_lpf(8, 50, d_stop=80, fs=1000) # Get filter coefficients for LPF
 
@@ -89,6 +89,8 @@ for i in range(2, 3): # Note that the shortest abnormal patient recording is 32 
         # Find R peaks
         rpeaks, = bp.ecg.hamilton_segmenter(signal=win, sampling_rate=ds)
         rpeaks, = bp.ecg.correct_rpeaks(signal=win, rpeaks=rpeaks, sampling_rate=ds)
+        if rpeaks.size == 0:
+            continue
         # Normalize data
         norm = (win - min(win))/(max(win)-min(win))
         # Calculate median distance between rpeaks (in samples) and use this as period
@@ -96,12 +98,16 @@ for i in range(2, 3): # Note that the shortest abnormal patient recording is 32 
         for index, r in enumerate(rpeaks):
             if index > 0:
                 diffs.append(r-rpeaks[index-1])
+        #print(np.shape(diffs), np.shape(rpeaks))
         period = stat.median(diffs)
         # Extract individual heartbeats
         for r in rpeaks:
             if r > beatLength/2 and len(win)-r > beatLength/2:
                 beat = norm[r-int(period/2):r+int(period/2)] # Exctract data surrounding r-peak
-                beat = np.pad(beat, (0,beatLength - len(beat)), 'constant') # Pad beat with zeros if it is short
+                if (len(beat)>beatLength):
+                    beat = beat[0:beatLength]
+                else:
+                    beat = np.pad(beat, (0,beatLength - len(beat)), 'constant') # Pad beat with zeros if it is short
                 abnBeats.append(beat)
 
 tc = time.time() - ts
@@ -113,10 +119,10 @@ ctrlBeats = np.append(ctrlBeats, values=ctrlY, axis=1)
 abnBeats = np.append(abnBeats, values=abnY, axis=1)
 
 # Export data as csv
-# ctrlBeats = np.asarray(ctrlBeats)
-# abnBeats = np.asarray(abnBeats)
-# np.savetxt('data/ptb-200hz_normal-v6.csv', ctrlBeats, fmt='%f', delimiter=',')
-# np.savetxt('data/ptb-200hz_abnormal-v6.csv', abnBeats, fmt='%f', delimiter=',')
+ctrlBeats = np.asarray(ctrlBeats)
+abnBeats = np.asarray(abnBeats)
+np.savetxt('data/ptb-60hz/ptb-60hz-v2_normal.csv', ctrlBeats, fmt='%f', delimiter=',')
+np.savetxt('data/ptb-60hz/ptb-60hz-v2_abnormal.csv', abnBeats, fmt='%f', delimiter=',')
 
 tc = time.time() - ts
 print('%.2fs - End\n' % tc )

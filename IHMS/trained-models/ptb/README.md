@@ -6,7 +6,7 @@
 
 #### General Info
 
-- **training_set:** PTB-55hz (Details in notes)
+- **training_set:** PTB-55hz-v1 (Details in notes)
 - **sampling_frequency:** 55hz
 - **beat_window_length:** 2 seconds (110 samples)
 - **epochs:** 50
@@ -38,7 +38,7 @@
 
 #### General Info
 
-- **training_set:** PTB-60hz (Details in notes)
+- **training_set:** PTB-60hz-v1 (Details in notes)
 - **sampling_frequency:** 60hz
 - **beat_window_length:** 2 seconds (120 samples)
 - **epochs:** 50
@@ -65,6 +65,94 @@
     - **samples:** 6978
     - **accuracy:** 98.395%
     - **errors:** 112 total, 103 false positive, 9 false negative
+
+### PTB 75Hz
+
+#### General Info
+
+- **training_set:** PTB-75hz-v1 (Details in notes)
+- **sampling_frequency:** 75hz
+- **beat_window_length:** 2 seconds (150 samples)
+- **epochs:** 50
+- **batch_size:** 500
+- **loss:** categorical_crossentropy
+- **optimizer:** Adam
+- **training_metric:** accuracy
+- **dataset_split_ratio:** 14748 training, 3000 validation, 1000 test
+- **notes:**
+    - 4360 more control samples artificialy generated and introduced into dataset_split_ratio
+    - Originially 4360 controls and 9627 abnormal in dataset
+
+####  Test Results
+
+- **PTB-75hz-v1**
+    - The test samples seperated from the original dataset
+    - **samples:** 1000
+    - **accuracy:** 99.5%
+    - **errors:** 5 total, 2 false negatives, 3 false positives
+
+- **PTB-75hz-v2**
+    - Same as training (PTB-75hz-v1) dataset except heartbeats extracted from a different part of the recordings. Entirely distinct from PTB-75hz-v1
+    - **samples:** 6955
+    - **accuracy:** 98.519%
+    - **errors:** 103 total, 53 false negatives, 50 false positives
+
+### PTB 100Hz
+
+#### General Info
+
+- **training_set:** PTB-100hz-v1 (Details in notes)
+- **sampling_frequency:** 100hz
+- **beat_window_length:** 2 seconds (200 samples)
+- **epochs:** 50
+- **batch_size:** 500
+- **loss:** categorical_crossentropy
+- **optimizer:** Adam
+- **training_metric:** accuracy
+- **dataset_split_ratio:** 14733 training, 3000 validation, 1000 test
+- **notes:**
+    - 4357 more control samples artificialy generated and introduced into dataset_split_ratio
+    - Originially 4357 controls and 9606 abnormal in dataset
+
+####  Test Results
+
+- **PTB-100hz-v1**
+    - The test samples seperated from the original dataset
+    - **samples:** 1000
+    - **accuracy:** 99.6%
+    - **errors:** 4 total, 1 false negatives, 3 false positives
+
+- **PTB-100hz-v2**
+    - Same as training (PTB-100hz-v1) dataset except heartbeats extracted from a different part of the recordings. Entirely distinct from PTB-100hz-v1
+    - **samples:** 6958
+    - **accuracy:** 98.649%
+    - **errors:** 94 total total, 50 false negatives, 44 false positives
+
+### PTB 125Hz
+
+#### General Info
+
+- **training_set:** PTB-100hz-v1 (Details in notes)
+- **sampling_frequency:** 125hz
+- **beat_window_length:** 1.5 seconds (187 samples)
+- **epochs:** 50
+- **batch_size:** 500
+- **loss:** categorical_crossentropy
+- **optimizer:** Adam
+- **training_metric:** accuracy
+- **dataset_split_ratio:** 14989 training, 3000 validation, 1000 test
+- **notes:**
+    - 4046 more control samples artificialy generated and introduced into dataset_split_ratio
+    - Originially 4046 controls and 10506 abnormal in dataset
+
+####  Test Results
+
+- **PTB-100hz-v1**
+    - The test samples seperated from the original dataset
+    - **samples:** 1000
+    - **accuracy:** 99.3%
+    - **errors:** 7 total, 3 false negatives, 4 false positives
+
 
 ### PTB 200Hz
 
@@ -97,6 +185,38 @@
     - **accuracy:** 99.409%
     - **errors:** 41 total, 20 false negative, 21 false positive
 
+### PTB 300Hz
+
+#### General Info
+
+- **training_set:** PTB-300hz-v1 (Details in notes)
+- **sampling_frequency:** 300hz
+- **beat_window_length:** 2 seconds (600 samples)
+- **epochs:** 50
+- **batch_size:** 500
+- **loss:** categorical_crossentropy
+- **optimizer:** Adam
+- **training_metric:** accuracy
+- **dataset_split_ratio:** 14669 training, 3000 validation, 1000 test
+- **notes:**
+    - 4360 more control samples artificialy generated and introduced into dataset_split_ratio
+    - Originially 4360 controls and 9534 abnormal in dataset
+
+####  Test Results
+
+- **PTB-300hz-v1**
+    - The test samples seperated from the original dataset
+    - **samples:** 1000
+    - **accuracy:** 99.7%
+    - **errors:** 3 total, 1 false negative, 2 false positive
+
+- **PTB-300hz-v2**
+   - Same as training (PTB-300hz-v1) dataset except heartbeats extracted from a different part of the recordings. Entirely distinct from PTB-300hz-v1
+    - **samples:** 6922
+    - **accuracy:** 99.494%
+    - **errors:** 35 total, 6 false negative, 29 false positive
+
+
 ### PTB 400Hz
 
 #### General Info
@@ -116,15 +236,15 @@
 
 ####  Test Results
 
-- **PTB-v1**
+- **PTB-400hz-v1**
     - The test samples seperated from the original dataset
     - **samples:** 1000
     - **accuracy:** 99.8%
     - **errors:** 2 total, 1 false negative, 1 false positive
 
-- **PTB-v6**
+- **PTB-400hz-v2**
     - Same as training (PTB-v5) dataset except heartbeats extracted from a different part of the recordings. Entirely distinct from PTB-v5
     - **samples:** 6935
-    - **accuracy:** 99.971%
-    - **errors:** 4 total, 2 false negative, 2 false positive
+    - **accuracy:** 99.071%
+    - **errors:** 68 total, 36 false negative, 32 false positive
 

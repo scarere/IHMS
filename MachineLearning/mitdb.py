@@ -17,7 +17,7 @@ from keras import callbacks
 
 
 #Read csv files. 0 is N, 1 is S, 2 is V, 3 is F, 4 is Q
-df = pd.read_csv('heartbeat-data/mit-200hz-v1.csv', header=None)
+df = pd.read_csv('heartbeat-data/mit-100hz.csv', header=None)
 print(df.shape)
 print(df.head())
 print(df.iloc[:,-1].value_counts())
@@ -64,7 +64,7 @@ del X
 del Y
 
 #Section off some of the test set for a final test. (Split into test set and validation set)
-X_val, X_test, Y_val, Y_test = train_test_split(X_test, Y_test, test_size=0.25)
+X_val, X_test, Y_val, Y_test = train_test_split(X_test, Y_test, test_size=0.5)
 
 #Shuffle data and transform x into columns by adding a dimension
 X_train, Y_train = shuffle(X_train, Y_train, random_state=0)
@@ -142,7 +142,7 @@ model.summary()
 
 model.compile(loss='categorical_crossentropy', optimizer='Adam', metrics=['accuracy'])
 history = model.fit(X_train, Y_train, 
-                    epochs=44, 
+                    epochs=50, 
                     batch_size=500, 
                     verbose=1, 
                     validation_data=(X_val, Y_val))
@@ -159,6 +159,6 @@ plt.show()
 y_pred = model.predict(X_test, batch_size=1000)
 print(classification_report(Y_test.argmax(axis=1), y_pred.argmax(axis=1), target_names=['N', 'S', 'V', 'F', 'Q'], digits=5))
 
-model.save('models/model-mit-v1.h5')
+model.save('models/mit-100hz.h5')
 print("Model Saved to models folder")
 

@@ -14,7 +14,7 @@
 - **loss:** categorical_crossentropy
 - **optimizer:** Adam
 - **training_metric:** accuracy
-- **dataset_split_ratio:** 146776 training, 3000 validation, 1000 test
+- **dataset_split_ratio:** 14385 training, 3000 validation, 1000 test
 - **notes:**
     - 4364 more control samples artificialy generated and introduced into dataset_split_ratio
     - Originially 4364 controls and 9657 abnormal in dataset

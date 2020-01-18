@@ -17,8 +17,8 @@ from keras import callbacks
 #Read csv files. 1 is abnormal, 0 is normal
 # df = pd.read_csv('heartbeat-data/ptbdb_abnormal.csv', header=None)
 # df2 = pd.read_csv('heartbeat-data/ptbdb_normal.csv', header=None)
-df = pd.read_csv('heartbeat-data/ptb-125hz-kaggle/ptbdb_abnormal.csv', header=None)
-df2 = pd.read_csv('heartbeat-data/ptb-125hz-kaggle/ptbdb_normal.csv', header=None)
+df = pd.read_csv('heartbeat-data/ptb-400hz-v1/ptb-400hz_abnormal-v1.csv', header=None)
+df2 = pd.read_csv('heartbeat-data/ptb-400hz-v1/ptb-400hz_normal-v1.csv', header=None)
 df = pd.concat([df, df2], axis=0)
 print(df.shape)
 print(df.head())
@@ -123,14 +123,21 @@ S51 = layers.Add(name='S5')([C52, M41])
 A5 = layers.Activation(activation='relu', name='A5')(S51)
 M51 = layers.MaxPooling1D(pool_size=5, strides=2, name='M5')(A5)
 
+
+# C61 = layers.Conv1D(filters=32, kernel_size=5, strides=1, padding='same', activation='relu', name='C61')(M51)
+# C62 = layers.Conv1D(filters=32, kernel_size=5, strides=1, padding='same', name='C62')(C61)
+# S61 = layers.Add(name='S6')([C62, M51])
+# A6 = layers.Activation(activation='relu', name='A6')(S61)
+# M61 = layers.MaxPooling1D(pool_size=5, strides=2, name='M6')(A6)
+
 F1 = layers.Flatten(name='Flatten')(M51)
 
 D1 = layers.Dense(32, activation='relu', name='D1')(F1)
 D2 = layers.Dense(32, name='D2')(D1)
 D3 = layers.Dense(2, name='D3')(D2)
-A6 = layers.Softmax(name='A6')(D3)
+A7 = layers.Softmax(name='A7')(D3)
 
-model = models.Model(inputs=inp, outputs=A6)
+model = models.Model(inputs=inp, outputs=A7)
 model.summary()
 
 
@@ -153,5 +160,5 @@ plt.show()
 y_pred = model.predict(X_test, batch_size=1000)
 print(classification_report(Y_test.argmax(axis=1), y_pred.argmax(axis=1), target_names=["Normal", "Arrythmias"], digits=5))
 
-model.save('models/ptb-125Hz.h5')
+model.save('models/ptb-400Hz-v2.h5')
 print("Model Saved to models folder")

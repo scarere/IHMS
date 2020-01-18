@@ -12,11 +12,11 @@ ts = time.time()
 
 print(' 0.00s - Loading Data From CSV ...')
 
-# Import list of recordings from ptb database
+# Import list of recordings from mit database
 records = wfdb.get_record_list('mitdb')
 
 fs = 360
-ds = 200
+ds = 100
 winLength = 10*fs
 beatLength = 2*fs
 beatLengthResampled = 2*ds
@@ -98,7 +98,7 @@ for sigIndex, signal in enumerate(signals): # iterate through all of the signals
 tc = time.time() - ts
 print('%.2fs - Exporting Data to CSV ...' % tc )                
 beats = np.asarray(beats)
-np.savetxt('data/mit-200hz-v1.csv', beats, fmt='%f', delimiter=',')
+np.savetxt('data/mit-60hz.csv', beats, fmt='%f', delimiter=',')
 tc = time.time() - ts
 print('%.2fs - End\n' % tc )
 

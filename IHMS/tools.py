@@ -1,6 +1,7 @@
 import numpy as np
 import statistics as stat
 import biosppy as bp
+from PyQt5 import QtGui
 
 def extract_heartbeats(win, fs, beatWin=2):
     """ Extracts heartbeats from an ECG recording.
@@ -49,3 +50,26 @@ def extract_heartbeats(win, fs, beatWin=2):
             beatList.append(beat)
     
     return beatList
+
+def launchGUI(title='IHMS', size=(1500,800)):
+    # Start PyQt
+    app = QtGui.QApplication([])
+
+    # Define a top-level widget to hold everything
+    mainWidget = QtGui.QWidget()
+
+    # Set Main Widget Background Color
+    p = mainWidget.palette()
+    p.setColor(mainWidget.backgroundRole(), QtGui.QColor(40, 40, 40))
+    mainWidget.setPalette(p)
+
+    # Set Figure Size
+    fig.resize(size[0], size[1])
+
+    # Set window title
+    if (title != None):
+        fig.setWindowTitle(title)
+
+    # Set Grid Layout
+    layout = QtGui.QGridLayout()
+    fig.setLayout(layout)

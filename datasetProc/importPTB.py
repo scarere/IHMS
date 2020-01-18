@@ -43,7 +43,7 @@ abnSignals = np.asarray(abnSignals)
 # Define Variables for heartbeat extraction
 fs = 1000 # Original Sampling Rate
 winLength = 10000 # Total window length (in samples) before resampling
-ds = 60 # Downsample signal to this sampling frequency
+ds = 300 # Downsample signal to this sampling frequency
 beatLength = 2*ds # Fixed length of single beat (in samples) after resampling (2*ds is two seconds)
 #b = fir_d.firwin_kaiser_lpf(8, 50, d_stop=80, fs=1000) # Get filter coefficients for LPF
 
@@ -121,8 +121,8 @@ abnBeats = np.append(abnBeats, values=abnY, axis=1)
 # Export data as csv
 ctrlBeats = np.asarray(ctrlBeats)
 abnBeats = np.asarray(abnBeats)
-np.savetxt('data/ptb-60hz/ptb-60hz-v2_normal.csv', ctrlBeats, fmt='%f', delimiter=',')
-np.savetxt('data/ptb-60hz/ptb-60hz-v2_abnormal.csv', abnBeats, fmt='%f', delimiter=',')
+np.savetxt('data/ptb-300hz/ptb-300hz-v2_normal.csv', ctrlBeats, fmt='%f', delimiter=',')
+np.savetxt('data/ptb-300hz/ptb-300hz-v2_abnormal.csv', abnBeats, fmt='%f', delimiter=',')
 
 tc = time.time() - ts
 print('%.2fs - End\n' % tc )

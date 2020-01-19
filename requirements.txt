@@ -10,6 +10,8 @@ wfdb==2.2.1
 h5py==2.10.0
 biosppy==0.6.1
 scikit-dsp-comm==0.0.5
+pyqtgraph==0.10.0
+pyqt5==5.14.1
 
 # The following can be installed using: pip install godirect[usb]
 # Note that for zsh, square brackets must be enclosed by quotations

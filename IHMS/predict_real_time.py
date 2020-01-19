@@ -4,6 +4,7 @@ import GoDirectSensor.gdx as gd
 import numpy as np
 import time
 from keras.models import load_model
+import tools
 
 
 # Change error settings
@@ -109,6 +110,9 @@ def main():
     dataq = Queue()
     timeq = Queue()
 
+    # Set Up GUI
+    fig, axes, curves = tools.launchGUI()
+
     # Create and Start Data Collection Process
     dataproc = Process(target=collect_data, args=(dataq, timeq, sensor, period))
     dataproc.start()
@@ -127,7 +131,7 @@ def main():
         else:
             buffer = np.append(buffer, chunk, axis=0)
             #print(np.shape(buffer))
-
+        
 
         if len(buffer) > fs*winLength:
             #print("Processing Window...")

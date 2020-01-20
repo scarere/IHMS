@@ -1,14 +1,13 @@
 MachineLearning/heartbeat-data/
-MachineLearning/__pycache__
-GoDirectSensor/__pycache__
 MachineLearning/models/
 datasetProc/data
 godirect_osx
-gdx-dev.py
+gdx_dev.py
+IHMS/savedData
 
-.vscode/
+.vscode
 .DS_Store
 .venv
 __pycache__
-.idea/
+.idea
 

@@ -14,8 +14,8 @@ charger_state = device_info[3]
 print("battery level % = ", battery_level)
 print("charger state = ", charger_state)
 
-gdx.select_sensors(sensors=1)
-gdx.start_fast() 
+gdx.select_sensors()
+gdx.start() 
 
 ts = time.time()
 recording = []

@@ -110,9 +110,6 @@ def main():
     dataq = Queue()
     timeq = Queue()
 
-    # Set Up GUI
-    fig, axes, curves = tools.launchGUI()
-
     # Create and Start Data Collection Process
     dataproc = Process(target=collect_data, args=(dataq, timeq, sensor, period))
     dataproc.start()
@@ -123,7 +120,6 @@ def main():
         chunk = dataq.get()
         tc = timeq.get()
         #print(tc)
-
         # Add Chunk of data to buffer
         if len(buffer) == 0: # Check if buffer is empty
             buffer = chunk

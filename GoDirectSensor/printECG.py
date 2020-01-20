@@ -18,20 +18,27 @@ gdx.select_sensors()
 gdx.start_fast() 
 
 ts = time.time()
-recording = []
-for i in range(0,10):
+recording1 = []
+recording2 = []
+chunked = []
+for i in range(0,100):
     chunk = gdx.read_chunk() #returns a list of measurements from the sensors selected.
     data = np.squeeze(chunk)
-    recording.append(data)
+    recording1.append(data)
+    #recording2.append(data[1])
     if chunk == None: 
         break 
     print(time.time() - ts)
     print(np.shape(chunk))
+    chunked = chunk
 
-recording = np.asarray(recording)
-recording = recording.flatten()
-print(np.shape(recording))
-plt.plot(recording)
+
+recording1 = np.asarray(recording1)
+recording1 = recording1.flatten()
+# recording2 = np.asarray(recording2)
+# recording2 = recording2.flatten()
+print(np.shape(recording1))
+plt.plot(recording1)
 plt.show()
 
 # Close sensor

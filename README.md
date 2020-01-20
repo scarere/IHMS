@@ -2,11 +2,21 @@
 
 IHMS is the repository for the Intelligent Heart Monitoring System. A Capstone project for the Queen's University Electrical Engineering program in Kingston, ON, CA.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/scarere/IHMS/real-time/GUI/IHMSLogo2.png">
+</p>
+
 ## What is the IHMS
 
 The Intelligent Heart Monitoring System is a project that, using an ECG electrode sensor, will classify abnormal heartbeats in real-time. 
 
 ## Repository breakdown
+
+### IHMS
+
+The IHMS folder is the final implementation of the IHMS system. This sections contains the code and scripts to run the IHMS system in full.
+  - Predict Arryhthmia's in Real-Time using complete system
+  - Real-time plotting and control using custom user interface
 
 ### Dataset-Proc
 
@@ -24,6 +34,19 @@ MachineLearning is the classifier creation and testing component of the IHMS pro
   - Model Validation
   - Model Testing
   - Model Performance Visualization
+
+### GoDirectSensor
+
+GoDirectSensor is the sensor testing and implementation component of the IHMS project. In this section, the Vernier GoDirect ECG sensor is used to develop scripts for recording data in real-time and testing code using multiprocessing.
+  - Sensor I/O
+  - Multiprocessing and Threading
+  - Real-time data acquisitiion and processing
+
+### GUI
+
+GUI is the component of the IHMS project where the user interface is developped and iterated upon.
+  - User Interface Layout Design
+  - GUI testing and development
 
 ## Contributors
 

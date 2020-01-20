@@ -270,7 +270,7 @@ class gdx:
                 for sensor in sensors:
                     data = np.copy(sensor.values)
                     chunks.append(data)
-                    sensor.clear()
+                    sensor.clear()g 
                 return chunks   
         else:
             return None

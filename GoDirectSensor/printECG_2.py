@@ -15,30 +15,21 @@ print("battery level % = ", battery_level)
 print("charger state = ", charger_state)
 
 gdx.select_sensors()
-gdx.start_fast() 
+gdx.start() 
 
 ts = time.time()
-recording1 = []
-recording2 = []
-chunked = []
-for i in range(0,100):
-    chunk = gdx.read_chunk() #returns a list of measurements from the sensors selected.
-    data = np.squeeze(chunk)
-    recording1.append(data)
-    #recording2.append(data[1])
+recording = []
+for i in range(0,50):
+    chunk = gdx.read_all() #returns a list of measurements from the sensors selected.
     if chunk == None: 
         break 
     print(time.time() - ts)
     print(np.shape(chunk))
-    chunked = chunk
 
-
-recording1 = np.asarray(recording1)
-recording1 = recording1.flatten()
-# recording2 = np.asarray(recording2)
-# recording2 = recording2.flatten()
-print(np.shape(recording1))
-plt.plot(recording1)
+chunk = np.asarray(chunk)
+chunk = chunk.flatten()
+print(np.shape(chunk))
+plt.plot(chunk)
 plt.show()
 
 # Close sensor

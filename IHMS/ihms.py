@@ -46,6 +46,10 @@ def extract_heartbeats(win, fs, beatWin=2):
     rpeaks, = bp.ecg.hamilton_segmenter(signal=win, sampling_rate=fs)
     rpeaks, = bp.ecg.correct_rpeaks(signal=win, rpeaks=rpeaks, sampling_rate=fs)
 
+    # If no rpeaks found return no beats
+    if np.size(rpeaks) == 0:
+        return [], []
+
     # Normalize data
     norm = (win - min(win))/(max(win)-min(win))
 
@@ -145,8 +149,9 @@ class dataCollector():
 #------------------------
 
 class Dashboard():
-    def __init__(self, fs=200, tickfactor=1, timewin=10, size=(1500,800), title='IHMS'):
-        self.fs = fs
+    def __init__(self, tickfactor=1, timewin=5, size=(1500,800), title='IHMS'):
+        self.fs = 100 # Default starting frequency
+        self.modelname = 'ptb/ptb-100hz'
         self.timewin = timewin
         self.tickfactor = tickfactor
         self.XWIN = self.timewin * self.fs
@@ -221,6 +226,18 @@ class Dashboard():
         self.stopButton = QPushButton("STOP")
         self.stopButton.clicked.connect(self.stop)
 
+        # Create Dropdown menu
+        self.dropdown = QComboBox()
+        self.dropdown.addItem('ptb-55hz')
+        self.dropdown.addItem('ptb-60hz')
+        self.dropdown.addItem('ptb-75hz')
+        self.dropdown.addItem('ptb-100hz')
+        self.dropdown.addItem('ptb-125hz')
+        self.dropdown.addItem('ptb-200hz')
+        self.dropdown.setStyleSheet('QAbstractItemView{background:white}') # Change background color of dropdown
+        self.dropdown.setCurrentIndex(3) # Set default index to 3 (ptb-100hz)
+        self.dropdown.activated.connect(self.changeModel)
+
         # Create BPM holder layout
         self.bpm = QVBoxLayout()
         self.bpm.setSpacing(0)
@@ -271,6 +288,7 @@ class Dashboard():
         left.addLayout(self.bpm)
         left.addWidget(self.bpmlabel, Qt.AlignTop)
         left.addWidget(self.status, Qt.AlignTop)
+        left.addWidget(self.dropdown)
         left.addWidget(self.startButton)
         left.addWidget(self.stopButton)
 
@@ -288,6 +306,37 @@ class Dashboard():
     def updateStatus(self, newStatus):
         self.status.setText(str(newStatus))
         QApplication.processEvents()
+
+    def changeModel(self):
+        text = str(self.dropdown.currentText())
+        # Update modelname
+        if 'mit' in text:
+            self.modelname = 'mit/' + text
+        else:
+            self.modelname = 'ptb/' + text
+
+        # Update to corresponding frequency
+        if '55hz' in text:
+            self.fs = 55
+            self.XWIN = self.timewin * self.fs
+        elif '60hz' in text:
+            self.fs = 60
+            self.XWIN = self.timewin * self.fs
+        elif '75hz' in text:
+            self.fs = 75
+            self.XWIN = self.timewin * self.fs
+        elif '100hz' in text:
+            self.fs = 100
+            self.XWIN = self.timewin * self.fs
+        elif '125hz' in text:
+            self.fs = 125
+            self.XWIN = self.timewin * self.fs
+        elif '200hz' in text:
+            self.fs = 200
+            self.XWIN = self.timewin * self.fs
+        
+        # Clear the plots
+        self.clearPlots()
 
     def updatePlot1(self, chunk):
         #print(np.shape(chunk))
@@ -338,19 +387,30 @@ class Dashboard():
         # Update changes
         QApplication.processEvents()
 
+    def clearPlots(self):
+        # Reset values
+        self.xlabels1 = np.zeros(self.XTICKS).tolist() # Vector to hold labels of ticks on x-axis
+        self.xticks1 = [ x * self.tickfactor for x in list(range(0, self.XTICKS))] # Initialize locations of x-labels
+        self.xlabels2 = np.zeros(self.XTICKS).tolist() # Vector to hold labels of ticks on x-axis
+        self.xticks2 = [ x * self.tickfactor for x in list(range(0, self.XTICKS))] # Initialize locations of x-labels
+        self.y_vec1 = np.zeros((len(self.x_vec))) # Initialize y_values as zero
+        self.y_vec2 = np.zeros((len(self.x_vec))) # Initialize y_values as zero
+
+        # Update Plots
+        self.curve1.setData(self.x_vec, self.y_vec1) # Update data
+        self.curve2.setData(self.x_vec, self.y_vec2) # Update data
+
     def start(self):
         # Initialize Variables
         self.sensors = [1]
         self.period = int((1/self.fs)*1000) # period in ms
-        print(self.period)
-        print(self.fs)
-        #winLength = select_winLength()
-        self.winLength = 10
+        print('Sampling at: ',self.fs)
+
+        self.winLength = 5
         self.buffer = [] # Buffer to hold sensor data
 
         # Load model
-        modelname = 'mit/mit-200hz'
-        self.model = load_model('trained-models/' + modelname + '.h5')
+        self.model = load_model('trained-models/' + self.modelname + '.h5')
 
         dataq, timeq = self.collector.start()
 
@@ -364,7 +424,7 @@ class Dashboard():
                 
             if not np.size(chunk) == 0:
                 self.updatePlot1(chunk[0]) # Plot filtered data
-                #self.updatePlot2(chunk[1]) # Also plot raw data
+                self.updatePlot2(chunk[1]) # Also plot raw data
 
                 # Add Chunk of data to buffer
                 if len(self.buffer) == 0: # Check if buffer is empty
@@ -387,7 +447,12 @@ class Dashboard():
                     
                     # Extract heartbeats
                     beats, bpm = extract_heartbeats(win=win, fs=self.fs, beatWin=2)
-                    #print(np.shape(beats))
+
+                    # If no heartbeats found skip the rest of the loop
+                    if np.size(beats) == 0:
+                        self.updateStatus('No Heartbeats Found')
+                        continue
+
                     beats = np.expand_dims(beats, 2)
                     self.updateBPM(bpm)
                     #print(np.shape(beats))
@@ -395,7 +460,7 @@ class Dashboard():
                     # Get Predictions
                     predictions = self.model.predict(beats, batch_size=len(beats))
 
-                    if 'mit' in modelname:
+                    if 'mit' in self.modelname:
                         classes = ['N', 'S', 'V', 'F', 'Q']
                         for pred in predictions:
                             if not np.argmax(pred) == 0:

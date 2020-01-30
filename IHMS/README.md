@@ -22,6 +22,19 @@ python ihms.py
 
 **Step 7:** Pressing stop will reset the system. Make sure to press stop before closing the window or the sensor will not disconnect properly
 
+## Steps to use visualizer to view savedData
+
+**Step 8:**Run the following command (Can be run in a seperate terminal to have both applications open at once)
+```bash
+python visualizer.py
+```
+
+**Step 9:**Use the drop down menu to select the data which you would like to view. Data is named after the time it was detected/captured
+
+**Step 10:**Click either 'Plot On Graph 1' or 'Plot On Graph 2' to plot the selected data on the desired graph
+
+**Step 11:**You can either select a different data file to display and overwrite what is currently on a graph, or you can use the clear button to clear the data currently displayed
+
 ## Possible Errors
 
 ### An error occurs during IHMS operation or program did not exit properly:

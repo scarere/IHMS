@@ -17,6 +17,7 @@ The Intelligent Heart Monitoring System is a project that, using an ECG electrod
 The IHMS folder is the final implementation of the IHMS system. This sections contains the code and scripts to run the IHMS system in full.
   - Predict Arryhthmia's in Real-Time using complete system
   - Real-time plotting and control using custom user interface
+  - Detailed visualization of saved data and arrhythmias
 
 ### Dataset-Proc
 

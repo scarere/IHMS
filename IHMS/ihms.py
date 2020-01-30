@@ -85,10 +85,23 @@ def extract_heartbeats(win, fs, beatWin=2):
 
 class dataCollector():
     def __init__(self,):
+        '''
+        dataCollector is an object used to start data collection from the sensor in a seperate process
+        '''
+        # Set multiprocess start method to spawn
         mp.set_start_method('spawn')
 
     def start(self):
-        self.sensors = [1, 5]
+        '''
+        Starts a process for data collection
+
+        Creates a new process using multiprocessing which pulls data from the sensor and pushes them to a queue
+
+        returns:
+            dataq: The queue which holds the data chunks from the sensor
+            timeq: The queue which holds timestamps for each chunk
+        '''
+        self.sensors = [1, 5] # read from both sensors 1 and 5
         self.period = int((1/100)*1000) # period in ms
 
         # Create Queue's To Pass Data from collect_data process to main process
@@ -102,6 +115,9 @@ class dataCollector():
         return [dataq, timeq]
     
     def stop(self):
+        '''
+        Terminates the data collection process and closes the sensor
+        '''
         # Terminate data collection process
         self.dataproc.terminate()
 
@@ -114,7 +130,8 @@ class dataCollector():
         ''' Collects data within it's own process
 
         Call this function within its own process to collect chunks of data in the background.
-        The function pushes chunks to a Queue that is accessible from the main process
+        The function pushes chunks to a Queue that is accessible from the main process. This is 
+        an infinite process and must be terminated manually
 
         Args:
             dataq: The multiprocessing Queue() object to push the chunks of data to
@@ -153,18 +170,33 @@ class dataCollector():
 
 class Dashboard():
     def __init__(self, tickfactor=2, timewin=10, size=(1500,800), title='IHMS'):
+        '''Displays information from the IHMS system
+
+        The dashboard plots the data from the sensor in real-time, gives real-time updates on the
+        status of the IHMS and displays the users BPM. It also has various controls that the user can
+        use to select the model for real-time detection, and start and stop the system.
+
+        Args:
+            tickfactor (int): The amount of time (in seconds) between each label on the x axis
+            timewin (int): The width of the plot in seconds
+            size (int,int): The size of the overall dashboard window in the form (length, width)
+            title (str): The title of the window
+        '''
+
         self.fs = 100 # Default starting frequency
         self.modelname = 'ptb/ptb-100hz'
         self.timewin = timewin
         self.tickfactor = tickfactor
         self.XWIN = self.timewin * self.fs
         self.XTICKS = (int)((self.timewin+1) / self.tickfactor)
-        self.firstUpdate1 = True
-        self.firstUpdate2 = True
+        self.beatwin = 2 # Default beat length in seconds for the default ML model
         self.running = False
         self.collector = dataCollector()
-        self.beatwin = 2
-
+        
+        # set first update booleans. Used to help line up x-axis labels
+        self.firstUpdate1 = True
+        self.firstUpdate2 = True
+        
         # Change App color palette and style
         if sys.platform.startswith('darwin'):
             QApplication.setStyle('macintosh')
@@ -300,19 +332,33 @@ class Dashboard():
         wrap.addLayout(left)
         wrap.addLayout(right)
         self.mainWidget.setLayout(wrap)
-
         self.mainWidget.show()
     
     def updateBPM(self, bpm):
+        '''Updates the BPM value on the dashboard
+
+        Args:
+            bpm: The beats per minute value to update on the dashboard
+        '''
         bpm = int(bpm)
         self.bpmNum.setText(str(bpm))
         QApplication.processEvents()
     
     def updateStatus(self, newStatus):
+        '''Updates the status indicator on the dashboard
+
+        Args:
+            newStatus (str): The string which you would like to be displayed on the dashboard
+        '''
         self.status.setText(str(newStatus))
         QApplication.processEvents()
 
     def changeModel(self):
+        '''Changes the system from one model to another
+
+        Reads the current model selected in the dropdown menu and resets the various variables that 
+        must be changed in order to use that model such as sampling frequency, x_vec, modelname etc.
+        '''
         text = str(self.dropdown.currentText())
         # Update modelname
         if 'mit' in text:
@@ -345,7 +391,16 @@ class Dashboard():
         # Clear the plots
         self.clearPlots()
 
-    def updatePlot1(self, chunk):
+    def updatePlot1(self, chunk):\
+        '''Updates Plot 1
+
+        Takes a chunk of data and appends it to the currently displayed data. Discards the oldest data and shifts
+        the x axis of the plot accordingly to create a scrolling effect.
+
+        Args:
+            chunk: An array of values read from the sensor to be plotted
+        '''
+
         #print(np.shape(chunk))
         chunkperiod = len(chunk)*(1/self.fs)
         self.xticks1 = [x - chunkperiod for x in self.xticks1] # Update location of x-labels
@@ -371,6 +426,14 @@ class Dashboard():
         QApplication.processEvents()
 
     def updatePlot2(self, chunk):
+        '''Updates Plot 2
+
+        Takes a chunk of data and appends it to the currently displayed data. Discards the oldest data and shifts
+        the x axis of the plot accordingly to create a scrolling effect.
+
+        Args:
+            chunk: An array of values read from the sensor to be plotted
+        '''
         chunkperiod = len(chunk)*(1/self.fs)
         self.xticks2 = [x - chunkperiod for x in self.xticks2] # Update location of x-labels
         if(self.xticks2[0] < 0): # Check if a label has crossed to the negative side of the y-axis
@@ -395,6 +458,10 @@ class Dashboard():
         QApplication.processEvents()
 
     def clearPlots(self):
+        '''Resets both plots
+
+        Clears the values that are currently plotted and resets the necessary variables in order to start the system again
+        '''
         # Reset values
         self.xlabels1 = np.zeros(self.XTICKS).tolist() # Vector to hold labels of ticks on x-axis
         self.xticks1 = [ x * self.tickfactor for x in list(range(0, self.XTICKS))] # Initialize locations of x-labels
@@ -407,28 +474,37 @@ class Dashboard():
         self.curve1.setData(self.x_vec, self.y_vec1) # Update data
         self.curve2.setData(self.x_vec, self.y_vec2) # Update data
 
+        # Reset firstUpdate
+        self.firstUpdate1 = True
+        self.firstUpdate2 = True
+
     def start(self):
+        '''Starts displaying BPM, predictions and plotting data in real time
+
+        Reads data from the dataCollector, plots it in real time and does the necessary processing
+        to make predictions in real time and display those on the dashboard
+        '''
         # Initialize Variables
         self.sensors = [1]
         self.period = int((1/self.fs)*1000) # period in ms
         print('Sampling at: ',self.fs)
 
-        self.winLength = 10
+        self.winLength = 10 # The desired length of the buffer in seconds before doing any processing
         self.buffer = [] # Buffer to hold sensor data
 
         # Load model
         self.model = load_model('trained-models/' + self.modelname + '.h5')
 
+        # Start the dataCollector and begin collecting data
         dataq, timeq = self.collector.start()
 
         self.running = True
-        self.updateStatus('Recording')
+        self.updateStatus('Recording') # Weirdly this statement does not work
         while(self.running == True):
             # Get Chunk of data from Data Queue
             chunk = dataq.get()
             #tc = timeq.get()
 
-                
             if not np.size(chunk) == 0:
                 self.updatePlot1(chunk[0]) # Plot filtered data
                 self.updatePlot2(chunk[1]) # Also plot raw data
@@ -443,11 +519,14 @@ class Dashboard():
                 if len(self.buffer) > self.fs*self.winLength*0.25:
                     self.updateStatus('Running...')
                 
+                # Once buffer is long enough, process window and make predictions
                 if len(self.buffer) > self.fs*self.winLength:
-                    self.updateStatus('Processing...')
+                    self.updateStatus('Processing...') # Update status
+
                     # Get date and time string in case data needs to be saved
                     now = datetime.now()
                     dt_string = now.strftime("%d-%m-%Y--%H:%M:%S")
+
                     # Seperate a window from buffer
                     win = self.buffer[0:self.fs*self.winLength]
                     self.buffer = self.buffer[self.fs*self.winLength:]
@@ -467,8 +546,9 @@ class Dashboard():
                     # Get Predictions
                     predictions = self.model.predict(beats, batch_size=len(beats))
 
+                    # Check which type of model is being used
                     if 'mit' in self.modelname:
-                        classes = ['N', 'S', 'V', 'F', 'Q']
+                        classes = ['N', 'S', 'V', 'F', 'Q'] # The classes for the MIT models
                         for pred in predictions:
                             if not np.argmax(pred) == 0:
                                 self.updateStatus(classes[np.argmax(pred)] + ' Class Detected')
@@ -477,27 +557,30 @@ class Dashboard():
                             self.updateStatus('No Abnormalities Detected')
 
                     else: # Model is trained of PTB dataset
-                        metadata = [self.fs, self.winLength]
+                        metadata = [self.fs, self.winLength] # Metadata will be used when plotting abnormalities with visualizer
                         for idx, pred in enumerate(predictions):
                             if pred[0] < 0.5: # Check If beat was predicted as abnormal
                                 metadata.append(peaks[idx]) # Append location of abnormal beat
 
-                        if np.size(metadata) == 2:
+                        # Check if any abnormalities were detected
+                        if np.size(metadata) == 2: 
                             self.updateStatus('No Abnormalities Detected')
                         else:
+                            # If abnormal beats detected, update status and save window and window metadata
                             win = np.asarray(win)
                             self.updateStatus('Arrhythmia Detected!')
                             np.savetxt('savedData/' + dt_string + '.csv', win, fmt='%f', delimiter=',')
                             np.savetxt('savedData/' + dt_string + '-metadata.csv', metadata, fmt='%f', delimiter=',')
-                            
-
 
         self.updateStatus('Idle')
 
     def stop(self):
+        '''Stops the system by stopping the collection process
+        '''
         self.collector.stop()
         self.running = False
 
+# Open a Dashboard
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     gui = Dashboard()

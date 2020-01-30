@@ -39,6 +39,7 @@ def extract_heartbeats(win, fs, beatWin=2):
 
     Returns:
         beatList: A list of arrays that represent the individual beats within the recording.
+        peaks: The locations of the rpeaks of the extracted beats by their index within the window
         bpm: The beats per minute of the window of data based on the median beat period
     """
 
@@ -62,10 +63,11 @@ def extract_heartbeats(win, fs, beatWin=2):
     del diffs
 
     # Calculate beat length in samples
-    beatLength = beatWin*fs
+    beatLength = int(beatWin*fs)
 
     # Extract individual heartbeats
     beatList = []
+    peaks = []
     for r in rpeaks:
         if r > beatLength/2 and len(win)-r > beatLength/2:
             beat = norm[r-int(period/2):r+int(period/2)] # Exctract data surrounding r-peak
@@ -75,10 +77,11 @@ def extract_heartbeats(win, fs, beatWin=2):
             else:
                 beat = np.pad(beat, (0,beatLength - len(beat)), 'constant') # Pad beat with zeros if it is short
             beatList.append(beat)
+            peaks.append(r)
 
     bpm = 60*fs / period
     
-    return beatList, bpm
+    return beatList, peaks, bpm
 
 class dataCollector():
     def __init__(self,):
@@ -149,16 +152,18 @@ class dataCollector():
 #------------------------
 
 class Dashboard():
-    def __init__(self, tickfactor=1, timewin=5, size=(1500,800), title='IHMS'):
+    def __init__(self, tickfactor=2, timewin=10, size=(1500,800), title='IHMS'):
         self.fs = 100 # Default starting frequency
         self.modelname = 'ptb/ptb-100hz'
         self.timewin = timewin
         self.tickfactor = tickfactor
         self.XWIN = self.timewin * self.fs
         self.XTICKS = (int)((self.timewin+1) / self.tickfactor)
-        self.firstUpdate = True
+        self.firstUpdate1 = True
+        self.firstUpdate2 = True
         self.running = False
         self.collector = dataCollector()
+        self.beatwin = 2
 
         # Change App color palette and style
         if sys.platform.startswith('darwin'):
@@ -202,7 +207,7 @@ class Dashboard():
         self.axis2 = pg.AxisItem(orientation='bottom')
         self.axis2.setTicks([[(self.xticks2[i],str(self.xlabels2[i])) for i in range(len(self.xticks2))]]) # Initialize all labels as zero
 
-        # Create plot widget and append to list
+        # Create plot widgets
         self.plot1 = pg.PlotWidget(axisItems={'bottom': self.axis1}, labels={'left': 'Volts (mV)'}, title='Filtered ECG') # Create Plot Widget
         self.plot1.plotItem.setMouseEnabled(x=False, y=False) # Disable panning for widget
         self.plot1.plotItem.showGrid(x=True) # Enable vertical gridlines
@@ -318,23 +323,25 @@ class Dashboard():
         # Update to corresponding frequency
         if '55hz' in text:
             self.fs = 55
-            self.XWIN = self.timewin * self.fs
+            self.beatwin = 2
         elif '60hz' in text:
             self.fs = 60
-            self.XWIN = self.timewin * self.fs
+            self.beatwin = 2
         elif '75hz' in text:
             self.fs = 75
-            self.XWIN = self.timewin * self.fs
+            self.beatwin = 2
         elif '100hz' in text:
             self.fs = 100
-            self.XWIN = self.timewin * self.fs
+            self.beatwin = 2
         elif '125hz' in text:
             self.fs = 125
-            self.XWIN = self.timewin * self.fs
+            self.beatwin = 1.5
         elif '200hz' in text:
             self.fs = 200
-            self.XWIN = self.timewin * self.fs
-        
+            self.beatwin = 2
+            
+        self.XWIN = self.timewin * self.fs
+        (self.x_vec, step) = np.linspace(0,self.timewin,self.XWIN+1, retstep=True) # vector used to plot y values
         # Clear the plots
         self.clearPlots()
 
@@ -347,11 +354,11 @@ class Dashboard():
             self.xticks1.pop(0)
             self.xticks1.append(self.xticks1[-1] + self.tickfactor)
             # Adjust time labels accordingly
-            if (self.firstUpdate == False): # Check to see if it's the first update, if so skip so that time starts at zero
+            if (self.firstUpdate1 == False): # Check to see if it's the first update, if so skip so that time starts at zero
                 self.xlabels1.append(self.xlabels1[-1] + self.tickfactor)
                 self.xlabels1.pop(0)
             else:
-                self.firstUpdate = False
+                self.firstUpdate1 = False
 
         # Update Plot Data
         self.y_vec1 = np.append(self.y_vec1, chunk, axis=0)[len(chunk):] # Append chunk to the end of y_data (currently only doing 1 channel)
@@ -371,11 +378,11 @@ class Dashboard():
             self.xticks2.pop(0)
             self.xticks2.append(self.xticks2[-1] + self.tickfactor)
             # Adjust time labels accordingly
-            if (self.firstUpdate == False): # Check to see if it's the first update, if so skip so that time starts at zero
+            if (self.firstUpdate2 == False): # Check to see if it's the first update, if so skip so that time starts at zero
                 self.xlabels2.append(self.xlabels2[-1] + self.tickfactor)
                 self.xlabels2.pop(0)
             else:
-                self.firstUpdate = False
+                self.firstUpdate2 = False
 
         # Update Plot Data
         self.y_vec2 = np.append(self.y_vec2, chunk, axis=0)[len(chunk):] # Append chunk to the end of y_data (currently only doing 1 channel)
@@ -406,7 +413,7 @@ class Dashboard():
         self.period = int((1/self.fs)*1000) # period in ms
         print('Sampling at: ',self.fs)
 
-        self.winLength = 5
+        self.winLength = 10
         self.buffer = [] # Buffer to hold sensor data
 
         # Load model
@@ -446,7 +453,7 @@ class Dashboard():
                     self.buffer = self.buffer[self.fs*self.winLength:]
                     
                     # Extract heartbeats
-                    beats, bpm = extract_heartbeats(win=win, fs=self.fs, beatWin=2)
+                    beats, peaks, bpm = extract_heartbeats(win=win, fs=self.fs, beatWin=self.beatwin)
 
                     # If no heartbeats found skip the rest of the loop
                     if np.size(beats) == 0:
@@ -468,15 +475,21 @@ class Dashboard():
                                 break
                         else:
                             self.updateStatus('No Abnormalities Detected')
-                    else:
-                        for pred in predictions:
+
+                    else: # Model is trained of PTB dataset
+                        metadata = [self.fs, self.winLength]
+                        for idx, pred in enumerate(predictions):
                             if pred[0] < 0.5: # Check If beat was predicted as abnormal
-                                win = np.asarray(win)
-                                self.updateStatus('Arrhythmia Detected!')
-                                np.savetxt('savedData/' + dt_string + '.csv', win, fmt='%f', delimiter=',')
-                                break # Break from check since we are already saving whole window
-                        else:
+                                metadata.append(peaks[idx]) # Append location of abnormal beat
+
+                        if np.size(metadata) == 2:
                             self.updateStatus('No Abnormalities Detected')
+                        else:
+                            win = np.asarray(win)
+                            self.updateStatus('Arrhythmia Detected!')
+                            np.savetxt('savedData/' + dt_string + '.csv', win, fmt='%f', delimiter=',')
+                            np.savetxt('savedData/' + dt_string + '-metadata.csv', metadata, fmt='%f', delimiter=',')
+                            
 
 
         self.updateStatus('Idle')

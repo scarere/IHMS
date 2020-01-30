@@ -1,0 +1,216 @@
+import sys
+from os import listdir
+from os.path import isfile, join
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+import pyqtgraph as pg
+import numpy as np
+
+class Visualizer():
+    def __init__(self, size=(1500,800), title='Data Visualizer'):
+       
+        # Change App color palette and style
+        if sys.platform.startswith('darwin'):
+            QApplication.setStyle('macintosh')
+        else:
+            QApplication.setStyle('Fusion')
+
+        p = QPalette()
+        p.setColor(QPalette.Window, QColor(30,30,30))
+        p.setColor(QPalette.WindowText, Qt.white)
+        QApplication.setPalette(p)
+
+        # Define a top-level widget to hold everything
+        self.mainWidget = QWidget()
+
+        # Set Figure Size
+        self.mainWidget.resize(size[0], size[1])
+
+        # Set window title
+        if (title != None):
+            self.mainWidget.setWindowTitle(title)
+
+        ########################
+        # Create Widgets
+        ########################
+
+        # Create dropdown menu
+        self.dropdown = QComboBox()
+        self.dropdown.setStyleSheet('QAbstractItemView{background:white}') # Change background color of dropdown
+        self.scan()
+
+        # Buttons
+        self.scanButton = QPushButton('SCAN')
+        self.scanButton.clicked.connect(self.scan)
+
+        self.plot1Button = QPushButton('Plot Data On Graph 1')
+        self.plot1Button.clicked.connect(self.plotGraph1)
+
+        self.plot2Button = QPushButton('Plot Data On Graph 2')
+        self.plot2Button.clicked.connect(self.plotGraph2)
+
+        self.clearButton = QPushButton('CLEAR')
+        self.clearButton.clicked.connect(self.clearGraphs)
+
+         # Create Logo PixMap
+        self.logo = QLabel()
+        logomap = QPixmap('IHMSLogo.png')
+        logomap = logomap.scaled(250,250, Qt.KeepAspectRatio)
+        self.logo.setPixmap(logomap)
+        self.logo.setAlignment(Qt.AlignCenter)
+
+        # Create status label
+        self.title = QLabel()
+        self.title.setText('Data\nVisualizer')
+        self.title.setAlignment(Qt.AlignCenter)
+        self.title.setFont(QFont('Times', 50))
+
+        self.spacer = QLabel()
+        self.spacer.setText('')
+
+        #####################
+        # Create Plot Widgets
+        #####################
+        timewin = 10
+        XWIN = timewin * 100
+        XTICKS = timewin+1
+
+         # Set Up variables
+        (self.x_vec, step) = np.linspace(0,timewin,XWIN+1, retstep=True) # vector used to plot y values
+        self.xlabels = np.zeros(timewin+1).tolist() # Vector to hold labels of ticks on x-axis
+        self.xticks = list(range(0, timewin+1)) # Initialize locations of x-labels
+        self.y_vec = np.zeros((len(self.x_vec))) # Initialize y_values as zero
+
+        # Create axis item and set tick locations and labels
+        self.axis1 = pg.AxisItem(orientation='bottom')
+        self.axis1.setTicks([[(self.xticks[i],str(self.xlabels[i])) for i in range(len(self.xticks))]]) # Initialize all labels as zero
+
+        self.axis2 = pg.AxisItem(orientation='bottom')
+        self.axis2.setTicks([[(self.xticks[i],str(self.xlabels[i])) for i in range(len(self.xticks))]]) # Initialize all labels as zero
+
+        
+        # Create Plot Widgets
+        self.plot1 = pg.PlotWidget(axisItems={'bottom': self.axis1}, labels={'left': 'Volts (mV)'}, title='Graph 1') # Create Plot Widget
+        self.plot1.plotItem.showGrid(x=True) # Enable vertical gridlines
+
+        self.plot2 = pg.PlotWidget(axisItems={'bottom': self.axis2}, labels={'left': 'Volts (mV)'}, title='Graph 2') # Create Plot Widget
+        self.plot2.plotItem.showGrid(x=True) # Enable vertical gridlines
+
+        # Plot data and save curve. Append curve to list
+        self.curve1 = self.plot1.plot(self.x_vec, self.y_vec, pen=pg.mkPen('c', width=1)) # Set thickness and color of lines
+        self.curve2 = self.plot2.plot(self.x_vec, self.y_vec, pen=pg.mkPen('m', width=1)) # Set thickness and color of lines
+        
+        #----------------------
+        # Add Widgets to Layout
+        #----------------------
+        # Create Layouts
+        right = QVBoxLayout()
+        left = QVBoxLayout()
+        wrap = QHBoxLayout()
+
+        # Add widgets
+        right.addWidget(self.plot1)
+        right.addWidget(self.plot2)
+        left.addWidget(self.logo)
+        left.addWidget(self.title)
+        left.addWidget(self.spacer, Qt.AlignBottom)
+        left.addWidget(self.dropdown, Qt.AlignTop)
+        left.addWidget(self.scanButton)
+        left.addWidget(self.plot1Button)
+        left.addWidget(self.plot2Button)
+        left.addWidget(self.clearButton)
+
+        wrap.addLayout(left)
+        wrap.addLayout(right)
+        self.mainWidget.setLayout(wrap)
+
+        self.mainWidget.show()
+
+    def scan(self):
+        self.dropdown.clear() # Clear combobox so we don't get duplicates
+        files = [f for f in listdir('savedData') if isfile(join('savedData', f))]
+        for file in files:
+            if 'metadata' not in file:
+                self.dropdown.addItem(file[:-4]) # Add data as an option in dropdown menu
+
+    def plotGraph1(self):
+        datastring = str(self.dropdown.currentText())
+        metadata = np.genfromtxt('savedData/'+ datastring + '-metadata.csv', delimiter=',')
+        data = np.genfromtxt('savedData/' + datastring + '.csv', delimiter=',')
+
+        fs = metadata[0]
+        winLength = int(metadata[1])
+        rpeaks = metadata[2:]
+
+
+        xwin = int(fs*winLength)
+        (x_vec, step) = np.linspace(0,winLength,xwin, retstep=True) # vector used to plot y values
+        xticks = list(range(0, winLength+1))
+
+        self.axis1.setTicks([[(self.xticks[i],str(self.xticks[i])) for i in range(len(self.xticks))]]) # Set labels
+        self.curve1.setData(x_vec, data)
+
+        # Annotate abnormal peaks with vertical lines
+        for peak in rpeaks:
+            line = pg.InfiniteLine(pos=peak/fs, label='Abnormal', labelOpts={'movable':True, 'position':0.9}, pen=pg.mkPen('y', width=0.75))
+            self.plot1.addItem(line)
+
+        # Process Changes
+        QApplication.processEvents()
+    
+    def plotGraph2(self):
+        datastring = str(self.dropdown.currentText())
+        metadata = np.genfromtxt('savedData/'+ datastring + '-metadata.csv', delimiter=',')
+        data = np.genfromtxt('savedData/' + datastring + '.csv', delimiter=',')
+
+        fs = metadata[0]
+        winLength = int(metadata[1])
+        rpeaks = metadata[2:]
+
+
+        xwin = int(fs*winLength)
+        (x_vec, step) = np.linspace(0,winLength,xwin, retstep=True) # vector used to plot y values
+        xticks = list(range(0, winLength+1))
+
+        self.axis2.setTicks([[(self.xticks[i],str(self.xticks[i])) for i in range(len(self.xticks))]]) # Set labels
+        self.curve2.setData(x_vec, data)
+
+        # Annotate abnormal peaks with vertical lines
+        for peak in rpeaks:
+            line = pg.InfiniteLine(pos=peak/fs, label='Abnormal', labelOpts={'movable':True, 'position':0.9}, pen=pg.mkPen('y', width=0.75))
+            self.plot2.addItem(line)
+
+        # Process Changes
+        QApplication.processEvents()
+    
+    def clearGraphs(self):
+        
+        # Clear Graph
+        self.plot1.clear()
+        self.plot2.clear()
+
+        timewin = 10
+        XWIN = timewin * 100
+        XTICKS = timewin+1
+
+        # Set Up variables
+        (x_vec, step) = np.linspace(0,timewin,XWIN+1, retstep=True) # vector used to plot y values
+        xlabels = np.zeros(timewin+1).tolist() # Vector to hold labels of ticks on x-axis
+        xticks = list(range(0, timewin+1)) # Initialize locations of x-labels
+        y_vec = np.zeros((len(self.x_vec))) # Initialize y_values as zero
+
+        # Reset Axes
+        self.axis1 = pg.AxisItem(orientation='bottom')
+        self.axis1.setTicks([[(xticks[i],str(xlabels[i])) for i in range(len(xticks))]])
+        self.axis2 = pg.AxisItem(orientation='bottom')
+        self.axis2.setTicks([[(xticks[i],str(xlabels[i])) for i in range(len(xticks))]])
+
+        # Reset Data
+        self.curve1 = self.plot1.plot(x_vec, y_vec, pen=pg.mkPen('c', width=1)) # Set thickness and color of lines
+        self.curve2 = self.plot2.plot(x_vec, y_vec, pen=pg.mkPen('m', width=1)) # Set thickness and color of lines
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    gui = Visualizer()
+    app.exec_()

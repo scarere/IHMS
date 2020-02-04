@@ -74,5 +74,5 @@
 - **MIT-200hz**
     - The test samples seperated from the original dataset
     - **samples:** 5000
-    - **accuracy:** 99.702%
+    - **accuracy:** 97.02%
     - **errors:** 149 total

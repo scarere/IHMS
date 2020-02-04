@@ -43,9 +43,9 @@ abnSignals = np.asarray(abnSignals)
 # Define Variables for heartbeat extraction
 fs = 1000 # Original Sampling Rate
 winLength = 10000 # Total window length (in samples) before resampling
-ds = 300 # Downsample signal to this sampling frequency
+ds = 100 # Downsample signal to this sampling frequency
 beatLength = 2*ds # Fixed length of single beat (in samples) after resampling (2*ds is two seconds)
-#b = fir_d.firwin_kaiser_lpf(8, 50, d_stop=80, fs=1000) # Get filter coefficients for LPF
+b = fir_d.firwin_kaiser_lpf(8, 50, d_stop=80, fs=1000) # Get filter coefficients for LPF
 
 # Extract Control Heartbeats
 tc = time.time() - ts
@@ -55,7 +55,7 @@ for i in range(6, 9): # Note that the shortest control recording is 97 seconds l
     for signal in ctrlSignals:
         # Grab 10s window of data
         win = signal[i*winLength:i*winLength + winLength] # Fs is 1000Hz, therefore a 10s window is 10000 samples
-        #win = sigproc.filtfilt(b=b, a=1, x=win) # Filter data
+        win = sigproc.filtfilt(b=b, a=1, x=win) # Filter data
         win = sigproc.resample(win, int(winLength*ds/fs)) # Resample 10 seconds of data to 400Hz
         # Find R peaks
         rpeaks, = bp.ecg.hamilton_segmenter(signal=win, sampling_rate=ds)
@@ -84,7 +84,7 @@ for i in range(2, 3): # Note that the shortest abnormal patient recording is 32 
     for signal in abnSignals:
         # Grab 10s window of data
         win = signal[i*winLength:i*winLength + winLength] # Fs is 1000Hz, therefore a 10s window is 10000 samples
-        #win = sigproc.filtfilt(b=b, a=1, x=win) # Filter data
+        win = sigproc.filtfilt(b=b, a=1, x=win) # Filter data
         win = sigproc.resample(win, int(winLength*ds/fs)) # Resample 10 seconds of data to 400Hz
         # Find R peaks
         rpeaks, = bp.ecg.hamilton_segmenter(signal=win, sampling_rate=ds)
@@ -99,6 +99,8 @@ for i in range(2, 3): # Note that the shortest abnormal patient recording is 32 
             if index > 0:
                 diffs.append(r-rpeaks[index-1])
         #print(np.shape(diffs), np.shape(rpeaks))
+        if np.size(diffs) == 0:
+            continue
         period = stat.median(diffs)
         # Extract individual heartbeats
         for r in rpeaks:
@@ -121,8 +123,8 @@ abnBeats = np.append(abnBeats, values=abnY, axis=1)
 # Export data as csv
 ctrlBeats = np.asarray(ctrlBeats)
 abnBeats = np.asarray(abnBeats)
-np.savetxt('data/ptb-300hz/ptb-300hz-v2_normal.csv', ctrlBeats, fmt='%f', delimiter=',')
-np.savetxt('data/ptb-300hz/ptb-300hz-v2_abnormal.csv', abnBeats, fmt='%f', delimiter=',')
+np.savetxt('data/ptb-100hz/ptb-100hz-v2-filt_normal.csv', ctrlBeats, fmt='%f', delimiter=',')
+np.savetxt('data/ptb-100hz/ptb-100hz-v2-filt_abnormal.csv', abnBeats, fmt='%f', delimiter=',')
 
 tc = time.time() - ts
 print('%.2fs - End\n' % tc )

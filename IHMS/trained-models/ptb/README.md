@@ -128,6 +128,38 @@
     - **accuracy:** 98.649%
     - **errors:** 94 total total, 50 false negatives, 44 false positives
 
+### PTB 100Hz Filtered
+
+#### General Info
+
+- **training_set:** PTB-100hz-v1-filt (Details in notes)
+- **sampling_frequency:** 100hz
+- **beat_window_length:** 2 seconds (200 samples)
+- **epochs:** 50
+- **batch_size:** 500
+- **loss:** categorical_crossentropy
+- **optimizer:** Adam
+- **training_metric:** accuracy
+- **dataset_split_ratio:** 14888 training, 3000 validation, 1000 test
+- **notes:**
+    - PTB-100hz-v1-filt is filtered with an LPF (-3dB cutoff of 22.5Hz, -80dB by 50Hz)
+    - 4371 more control samples artificialy generated and introduced into dataset_split_ratio
+    - Originially 4371 controls and 9713 abnormal in dataset
+
+####  Test Results
+
+- **PTB-100hz-v1-filt**
+    - The test samples seperated from the original dataset
+    - **samples:** 1000
+    - **accuracy:** 99.9%
+    - **errors:** 1 total, 1 false negatives, 0 false positives
+
+- **PTB-100hz-v2-filt**
+    - Same as training (PTB-100hz-v1-filt) dataset except heartbeats extracted from a different part of the recordings. Entirely distinct from PTB-100hz-v1-filt
+    - **samples:** 7005
+    - **accuracy:** 97.93%
+    - **errors:** 145 total total, 74 false negatives, 71 false positives
+
 ### PTB 125Hz
 
 #### General Info
@@ -216,6 +248,38 @@
     - **accuracy:** 99.494%
     - **errors:** 35 total, 6 false negative, 29 false positive
 
+
+### PTB 300Hz Filtered
+
+#### General Info
+
+- **training_set:** PTB-300hz-v1-filt (Details in notes)
+- **sampling_frequency:** 300hz
+- **beat_window_length:** 2 seconds (600 samples)
+- **epochs:** 50
+- **batch_size:** 500
+- **loss:** categorical_crossentropy
+- **optimizer:** Adam
+- **training_metric:** accuracy
+- **dataset_split_ratio:** 14875 training, 3000 validation, 1000 test
+- **notes:**
+    - PTB-300hz-v1-filt is filtered with an LPF (-3dB cutoff of 22.5Hz, -80dB by 50Hz)
+    - 4376 more control samples artificialy generated and introduced into dataset_split_ratio
+    - Originially 4376 controls and 9721 abnormal in dataset
+
+####  Test Results
+
+- **PTB-300hz-v1-filt**
+    - The test samples seperated from the original dataset
+    - **samples:** 1000
+    - **accuracy:** 98.9%
+    - **errors:** 11 total, 7 false negative, 4 false positive
+
+- **PTB-300hz-v2**
+   - Same as training (PTB-300hz-v1-filt) dataset except heartbeats extracted from a different part of the recordings. Entirely distinct from PTB-300hz-v1
+    - **samples:** 6998
+    - **accuracy:** 97.899%
+    - **errors:** 147 total, 96 false negative, 51 false positive
 
 ### PTB 400Hz
 

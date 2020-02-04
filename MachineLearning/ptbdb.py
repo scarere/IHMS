@@ -17,8 +17,8 @@ from keras import callbacks
 #Read csv files. 1 is abnormal, 0 is normal
 # df = pd.read_csv('heartbeat-data/ptbdb_abnormal.csv', header=None)
 # df2 = pd.read_csv('heartbeat-data/ptbdb_normal.csv', header=None)
-df = pd.read_csv('heartbeat-data/ptb-400hz-v1/ptb-400hz_abnormal-v1.csv', header=None)
-df2 = pd.read_csv('heartbeat-data/ptb-400hz-v1/ptb-400hz_normal-v1.csv', header=None)
+df = pd.read_csv('heartbeat-data/ptb-100hz/ptb-100hz-v1-filt_abnormal.csv', header=None)
+df2 = pd.read_csv('heartbeat-data/ptb-100hz/ptb-100hz-v1-filt_normal.csv', header=None)
 df = pd.concat([df, df2], axis=0)
 print(df.shape)
 print(df.head())
@@ -149,7 +149,7 @@ history = model.fit(X_train, Y_train,
                     validation_data=(X_val, Y_val))
 
 print("History Keys: ", history.history.keys())
-acc_hist = history.history["val_acc"]
+acc_hist = history.history["val_accuracy"]
 print("Number of Epochs: ", len(acc_hist))
 smooth_acc_hist = pf.smoothCurve(acc_hist)
 plt.plot(range(1, len(smooth_acc_hist)+1), smooth_acc_hist)
@@ -160,5 +160,5 @@ plt.show()
 y_pred = model.predict(X_test, batch_size=1000)
 print(classification_report(Y_test.argmax(axis=1), y_pred.argmax(axis=1), target_names=["Normal", "Arrythmias"], digits=5))
 
-model.save('models/ptb-400Hz-v2.h5')
+model.save('models/ptb-100hz-filt.h5')
 print("Model Saved to models folder")

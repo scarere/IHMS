@@ -60,6 +60,7 @@ def extract_heartbeats(win, fs, beatWin=2):
         if index > 0:
             diffs.append(r-rpeaks[index-1]) # Calculate difference between r-peaks in samples
     period = stat.median(diffs) # Calculate median period
+    #print(np.size(rpeaks))
     del diffs
 
     # Calculate beat length in samples
@@ -91,7 +92,7 @@ class dataCollector():
         # Set multiprocess start method to spawn
         mp.set_start_method('spawn')
 
-    def start(self):
+    def start(self, period):
         '''
         Starts a process for data collection
 
@@ -102,7 +103,8 @@ class dataCollector():
             timeq: The queue which holds timestamps for each chunk
         '''
         self.sensors = [1, 5] # read from both sensors 1 and 5
-        self.period = int((1/100)*1000) # period in ms
+        #self.period = int((1/100)*1000) # period in ms
+        self.period = period
 
         # Create Queue's To Pass Data from collect_data process to main process
         dataq = Queue()
@@ -169,7 +171,7 @@ class dataCollector():
 #------------------------
 
 class Dashboard():
-    def __init__(self, tickfactor=2, timewin=10, size=(1500,800), title='IHMS'):
+    def __init__(self, tickfactor=1, timewin=5, size=(1500,800), title='IHMS'):
         '''Displays information from the IHMS system
 
         The dashboard plots the data from the sensor in real-time, gives real-time updates on the
@@ -192,6 +194,7 @@ class Dashboard():
         self.beatwin = 2 # Default beat length in seconds for the default ML model
         self.running = False
         self.collector = dataCollector()
+        self.filt = False
         
         # set first update booleans. Used to help line up x-axis labels
         self.firstUpdate1 = True
@@ -269,6 +272,7 @@ class Dashboard():
         self.dropdown.addItem('ptb-60hz')
         self.dropdown.addItem('ptb-75hz')
         self.dropdown.addItem('ptb-100hz')
+        self.dropdown.addItem('ptb-100hz-filt')
         self.dropdown.addItem('ptb-125hz')
         self.dropdown.addItem('ptb-200hz')
         self.dropdown.setStyleSheet('QAbstractItemView{background:white}') # Change background color of dropdown
@@ -385,13 +389,18 @@ class Dashboard():
         elif '200hz' in text:
             self.fs = 200
             self.beatwin = 2
-            
+
+        if 'filt' in text:
+            self.filt = True
+        else:
+            self.filt = False
+
         self.XWIN = self.timewin * self.fs
         (self.x_vec, step) = np.linspace(0,self.timewin,self.XWIN+1, retstep=True) # vector used to plot y values
         # Clear the plots
         self.clearPlots()
 
-    def updatePlot1(self, chunk):\
+    def updatePlot1(self, chunk):
         '''Updates Plot 1
 
         Takes a chunk of data and appends it to the currently displayed data. Discards the oldest data and shifts
@@ -403,6 +412,7 @@ class Dashboard():
 
         #print(np.shape(chunk))
         chunkperiod = len(chunk)*(1/self.fs)
+        #print(chunkperiod)
         self.xticks1 = [x - chunkperiod for x in self.xticks1] # Update location of x-labels
         if(self.xticks1[0] < 0): # Check if a label has crossed to the negative side of the y-axis
             # Delete label on left of x-axis and add a new one on the right side
@@ -485,18 +495,18 @@ class Dashboard():
         to make predictions in real time and display those on the dashboard
         '''
         # Initialize Variables
-        self.sensors = [1]
+        #self.sensors = [1]
         self.period = int((1/self.fs)*1000) # period in ms
         print('Sampling at: ',self.fs)
 
-        self.winLength = 10 # The desired length of the buffer in seconds before doing any processing
+        self.winLength = 5 # The desired length of the buffer in seconds before doing any processing
         self.buffer = [] # Buffer to hold sensor data
 
         # Load model
         self.model = load_model('trained-models/' + self.modelname + '.h5')
 
         # Start the dataCollector and begin collecting data
-        dataq, timeq = self.collector.start()
+        dataq, timeq = self.collector.start(period=self.period)
 
         self.running = True
         self.updateStatus('Recording') # Weirdly this statement does not work
@@ -545,6 +555,7 @@ class Dashboard():
 
                     # Get Predictions
                     predictions = self.model.predict(beats, batch_size=len(beats))
+                    #print(predictions)
 
                     # Check which type of model is being used
                     if 'mit' in self.modelname:

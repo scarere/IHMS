@@ -519,11 +519,16 @@ class Dashboard():
                 self.updatePlot1(chunk[0]) # Plot filtered data
                 self.updatePlot2(chunk[1]) # Also plot raw data
 
+                if self.filt = True:
+                    chunkdata = chunk[0]
+                else:
+                    chunkdata = chunk[1]
+
                 # Add Chunk of data to buffer
                 if len(self.buffer) == 0: # Check if buffer is empty
-                    self.buffer = chunk[0]
+                    self.buffer = chunkdata
                 else:
-                    self.buffer = np.append(self.buffer, chunk[0], axis=0)
+                    self.buffer = np.append(self.buffer, chunkdata, axis=0)
                 
                 # Check buffer length so that we don't overwrite previous message immediately
                 if len(self.buffer) > self.fs*self.winLength*0.25:

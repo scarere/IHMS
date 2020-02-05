@@ -1,5 +1,5 @@
 import sys
-from os import listdir
+from os import listdir, remove
 from os.path import isfile, join
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
@@ -49,6 +49,9 @@ class Visualizer():
         # Buttons
         self.scanButton = QPushButton('SCAN')
         self.scanButton.clicked.connect(self.scan)
+
+        self.delButton = QPushButton('DELETE')
+        self.delButton.clicked.connect(self.delete)
 
         self.plot1Button = QPushButton('Plot Data On Graph 1')
         self.plot1Button.clicked.connect(self.plotGraph1)
@@ -125,6 +128,7 @@ class Visualizer():
         left.addWidget(self.scanButton)
         left.addWidget(self.plot1Button)
         left.addWidget(self.plot2Button)
+        left.addWidget(self.delButton)
         left.addWidget(self.clearButton)
 
         wrap.addLayout(left)
@@ -141,6 +145,14 @@ class Visualizer():
         for file in files:
             if 'metadata' not in file: # Discard metadata files as options
                 self.dropdown.addItem(file[:-4]) # Add data as an option in dropdown menu
+    
+    def delete(self):
+        '''Deletes the selected data window
+        '''
+        datastring = str(self.dropdown.currentText())
+        remove('savedData/' + datastring + '.csv')
+        remove('savedData/' + datastring + '-metadata.csv')
+        self.scan()
 
     def plotGraph1(self):
         '''Plots a data window on graph 1

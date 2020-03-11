@@ -3,7 +3,7 @@
 IHMS is the repository for the Intelligent Heart Monitoring System. A Capstone project for the Queen's University Electrical Engineering program in Kingston, ON, CA.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/scarere/IHMS/develop/GUI/IHMSLogo2.png">
+  <img src="https://raw.githubusercontent.com/scarere/IHMS/master/GUI/IHMSLogo2.png">
 </p>
 
 ## What is the IHMS

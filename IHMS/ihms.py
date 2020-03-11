@@ -308,11 +308,17 @@ class Dashboard():
         self.logo.setPixmap(logomap)
         self.logo.setAlignment(Qt.AlignCenter)
 
-        # Create status label
+        # Create status labels
         self.status = QLabel()
         self.status.setText('Idle')
         self.status.setAlignment(Qt.AlignCenter)
         self.status.setFont(QFont('Times', 30))
+
+        self.status2 = QLabel()
+        self.status2.setText('')
+        self.status2.setAlignment(Qt.AlignCenter)
+        self.status2.setFont(QFont('Times', 25))
+        self.status2.setStyleSheet('color: grey')
         
         #----------------------
         # Add Widgets to Layout
@@ -328,7 +334,8 @@ class Dashboard():
         left.addWidget(self.logo, Qt.AlignBottom)
         left.addLayout(self.bpm)
         left.addWidget(self.bpmlabel, Qt.AlignTop)
-        left.addWidget(self.status, Qt.AlignTop)
+        left.addWidget(self.status)
+        left.addWidget(self.status2)
         left.addWidget(self.dropdown)
         left.addWidget(self.startButton)
         left.addWidget(self.stopButton)
@@ -354,6 +361,8 @@ class Dashboard():
         Args:
             newStatus (str): The string which you would like to be displayed on the dashboard
         '''
+        #old_status = self.status.text()
+        #self.status2.setText(str(old_status))
         self.status.setText(str(newStatus))
         QApplication.processEvents()
 
@@ -496,6 +505,8 @@ class Dashboard():
         '''
         # Initialize Variables
         #self.sensors = [1]
+        bpmlow = 40
+        bpmhigh = 150
         self.period = int((1/self.fs)*1000) # period in ms
         print('Sampling at: ',self.fs)
 
@@ -519,10 +530,11 @@ class Dashboard():
                 self.updatePlot1(chunk[0]) # Plot filtered data
                 self.updatePlot2(chunk[1]) # Also plot raw data
 
-                if self.filt = True:
+                # For some reason models work better on filtered data
+                if self.filt == True:
                     chunkdata = chunk[0]
                 else:
-                    chunkdata = chunk[1]
+                    chunkdata = chunk[0]
 
                 # Add Chunk of data to buffer
                 if len(self.buffer) == 0: # Check if buffer is empty
@@ -556,11 +568,16 @@ class Dashboard():
 
                     beats = np.expand_dims(beats, 2)
                     self.updateBPM(bpm)
+
+                    if bpm < bpmlow:
+                        self.updateStatus('Bradychardia')
+                    elif bpm > bpmhigh:
+                        self.updateStatus('Tachychardia')
+
                     #print(np.shape(beats))
 
                     # Get Predictions
                     predictions = self.model.predict(beats, batch_size=len(beats))
-                    #print(predictions)
 
                     # Check which type of model is being used
                     if 'mit' in self.modelname:

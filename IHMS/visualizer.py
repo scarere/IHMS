@@ -1,5 +1,5 @@
 import sys
-from os import listdir
+import os
 from os.path import isfile, join
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
@@ -49,6 +49,12 @@ class Visualizer():
         # Buttons
         self.scanButton = QPushButton('SCAN')
         self.scanButton.clicked.connect(self.scan)
+
+        self.delButton = QPushButton('DELETE')
+        self.delButton.clicked.connect(self.delete)
+
+        self.toggle = QPushButton('TAG/UNTAG')
+        self.toggle.clicked.connect(self.toggle_tag)
 
         self.plot1Button = QPushButton('Plot Data On Graph 1')
         self.plot1Button.clicked.connect(self.plotGraph1)
@@ -123,8 +129,10 @@ class Visualizer():
         left.addWidget(self.spacer, Qt.AlignBottom)
         left.addWidget(self.dropdown, Qt.AlignTop)
         left.addWidget(self.scanButton)
+        left.addWidget(self.toggle)
         left.addWidget(self.plot1Button)
         left.addWidget(self.plot2Button)
+        left.addWidget(self.delButton)
         left.addWidget(self.clearButton)
 
         wrap.addLayout(left)
@@ -137,10 +145,30 @@ class Visualizer():
         '''Scans the savedData folder and updates the dropdown menu of available data windows
         '''
         self.dropdown.clear() # Clear combobox so we don't get duplicates
-        files = [f for f in listdir('savedData') if isfile(join('savedData', f))] # Get list of files in savedData folder
+        files = [f for f in os.listdir('savedData') if isfile(join('savedData', f))] # Get list of files in savedData folder
         for file in files:
             if 'metadata' not in file: # Discard metadata files as options
                 self.dropdown.addItem(file[:-4]) # Add data as an option in dropdown menu
+    
+    def delete(self):
+        '''Deletes the selected data window
+        '''
+        datastring = str(self.dropdown.currentText())
+        os.remove('savedData/' + datastring + '.csv')
+        os.remove('savedData/' + datastring + '-metadata.csv')
+        self.scan()
+
+    def toggle_tag(self):
+        datastring = str(self.dropdown.currentText())
+        if 'tagged' in datastring:
+            newstring = datastring.replace('tagged--', '')
+            os.rename('savedData/' + datastring + '.csv', 'savedData/' + newstring + '.csv')
+            os.rename('savedData/' + datastring + '-metadata.csv', 'savedData/' + newstring + '-metadata.csv')
+        else:
+            os.rename('savedData/' + datastring + '.csv', 'savedData/tagged--' + datastring + '.csv')
+            os.rename('savedData/' + datastring + '-metadata.csv', 'savedData/tagged--' + datastring + '-metadata.csv')
+        
+        self.scan()
 
     def plotGraph1(self):
         '''Plots a data window on graph 1
